@@ -213,25 +213,32 @@ let table_class_type_methods _loc l =
 let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
-type row = { $row_record_fields _loc l$ };
-class type table = object
-$table_class_type_methods _loc l$
-end;
-value output : 
-  ?line_numbers:bool ->
-  ?header:bool ->
-  ?sep:char ->
-  out_channel -> table -> unit;
-value latex_output : 
-  ?line_numbers:bool ->
-  out_channel -> table -> unit;
-value input : 
-  ?line_numbers:bool ->
-  ?header:bool ->
-  ?sep:char ->
-  in_channel -> table;
+  type row = { $row_record_fields _loc l$ };
+  class type table = object
+      $table_class_type_methods _loc l$
+  end;
+  value output : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    out_channel -> table -> unit;
+  value latex_output : 
+    ?line_numbers:bool ->
+    out_channel -> table -> unit;
+  value input : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> table;
 end
   >>
+
+let expand_table_str _loc name l =
+  <:str_item<
+module $uid:String.capitalize name$ = struct
+  type row = { $row_record_fields _loc l$ };
+end
+>>
 
 
 EXTEND Gram
@@ -244,7 +251,7 @@ EXTEND Gram
 
   str_item: LEVEL "top" [
     [ "type" ; LIDENT "table"; name = LIDENT; "="; 
-      "{"; l = col_list; "}" -> <:str_item<>>]
+      "{"; l = col_list; "}" -> expand_table_str _loc name l]
   ];
 
   variants: [
