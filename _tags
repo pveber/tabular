@@ -1,0 +1,4 @@
+# OASIS_START
+# OASIS_STOP
+<src/pa_table.*>: syntax_camlp4o
+true: debug, annot

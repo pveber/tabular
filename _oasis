@@ -1,0 +1,21 @@
+OASISFormat: 0.3
+Name:        table
+Version:     0.1
+Synopsis:    R's dataframe like data structure
+Authors:     Philippe Veber
+License:     GPL-3.0
+Plugins:     META (0.3), DevFiles (0.3)
+
+Library table
+  Path:			src
+  BuildTools: 		ocamlbuild
+  Modules:    		Table, Table_lib
+  
+Library table_syntax
+  Path:			src
+  BuildTools: 		ocamlbuild
+  BuildDepends:		camlp4.lib, camlp4.quotations.r, camlp4.extend, table
+  Modules:    		Pa_table
+  FindlibParent:      	table
+  FindlibName:        	syntax
+  CompiledObject:     	byte
