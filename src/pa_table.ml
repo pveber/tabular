@@ -202,7 +202,9 @@ let record_row_type_fields _loc l =
 let expand_table_sig _loc name l =
 
   <:sig_item<
+module $uid:String.capitalize name$ : sig
 type row = { $record_row_type_fields _loc l$ };
+end
   >>
 
 
