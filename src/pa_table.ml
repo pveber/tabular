@@ -192,18 +192,31 @@ let convert_col_type _loc (typ, opt) =
 
 
 
-let record_row_type_fields _loc l =
+let row_record_fields _loc l =
   List.fold_right
     (fun (_loc, name, label, typ) accu -> 
       let field = <:ctyp< $lid:name$ : $typ#t$ >> in
       <:ctyp< $field$ ; $accu$ >>)
     l <:ctyp<>>  
 
-let expand_table_sig _loc name l =
+let table_class_type_methods _loc l =
+  let init = <:class_sig_item< 
+    method row : int -> row;
+    method sub : bool array -> table;
+  >>
+  in
+  List.fold_right
+    (fun (_loc, name, label, typ) accu ->
+      <:class_sig_item<method $lid:name$ : array $typ#t$; $accu$>>)
+    l init
 
+let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
-type row = { $record_row_type_fields _loc l$ };
+type row = { $row_record_fields _loc l$ };
+class type table = object
+$table_class_type_methods _loc l$
+end;
 end
   >>
 
