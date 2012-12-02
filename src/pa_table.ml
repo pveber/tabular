@@ -309,6 +309,9 @@ module $uid:String.capitalize name$ = struct
       $table_class_type_methods _loc l$
   end;
   $table_make_str_item _loc l$;
+  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = assert $`bool:false$;
+  value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
+  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = assert $`bool:false$;
 end
 >>
 
