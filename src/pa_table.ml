@@ -210,6 +210,57 @@ let table_class_type_methods _loc l =
       <:class_sig_item<method $lid:name$ : array $typ#t$; $accu$>>)
     l init
 
+let table_object_row_method _loc l =
+  let body =
+    List.fold_right
+      (fun (_loc, name, label, typ) accu ->
+	<:rec_binding< $lid:name$ = $lid:name$.(i) ; $accu$>>)
+      l <:rec_binding<>>
+  in
+  <:class_str_item<method row i = { $body$ };>>
+
+let table_object_sub_method _loc = function
+  | [] -> assert false (* FIXME: ensure elsewhere that this cannot happen*)
+  | (_loc, name, label, typ) :: _ as l ->
+    let make_call =
+      List.fold_left
+	(fun accu (_loc, name, label, typ) ->
+	  <:expr< $accu$ ~ $lid:name$ : (Table_lib.Array.sub $lid:name$ b) >>)
+	<:expr< make >> l
+    in
+    let body =
+      <:expr<
+	if Array.length $lid:name$ <> Array.length b
+	then raise (Invalid_argument "table#sub")
+	else $make_call$
+      >>
+    in
+    <:class_str_item<method sub b = $body$;>>
+
+let table_object_methods _loc l =
+  let init = <:class_str_item<
+$table_object_row_method _loc l$;
+$table_object_sub_method _loc l$;
+  >>
+  in
+  List.fold_right
+    (fun (_loc, name, label, typ) accu ->
+      <:class_str_item<method $lid:name$ = $lid:name$; $accu$>>)
+    l init
+
+let table_make_str_item _loc l =
+  let init = 
+    <:expr<object $table_object_methods _loc l$ end>> 
+  in
+  let f =
+    List.fold_right
+      (fun (_loc, name, label, typ) accu ->
+	<:expr< fun ~ $label$ -> $accu$ >>)
+      l
+      init
+  in
+  <:str_item<value make = $f$;>>
+
 let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
@@ -237,6 +288,10 @@ let expand_table_str _loc name l =
   <:str_item<
 module $uid:String.capitalize name$ = struct
   type row = { $row_record_fields _loc l$ };
+  class type table = object
+      $table_class_type_methods _loc l$
+  end;
+  $table_make_str_item _loc l$;
 end
 >>
 
