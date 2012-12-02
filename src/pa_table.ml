@@ -249,17 +249,34 @@ $table_object_sub_method _loc l$;
     l init
 
 let table_make_str_item _loc l =
-  let init = 
-    <:expr<object $table_object_methods _loc l$ end>> 
-  in
-  let f =
-    List.fold_right
-      (fun (_loc, name, label, typ) accu ->
+  let def = match l with
+    | [] -> 
+      <:expr<
+        object (s)
+	  method row i = raise (Invalid_argument "table#row: empty table");
+	  method sub _ = s;
+	end
+      >>
+    | (_loc, name, label, typ) :: t as l ->
+      let arg_check e =
+	List.fold_right
+	  (fun (_loc, name2, _, _) accu ->
+	    <:expr<
+	      if Array.length $lid:name$ <> Array.length $lid:name2$
+	      then raise (Invalid_argument (Printf.sprintf "table#make: col %s and %s have different length" $str:name$ $str:name2$))
+	      else $accu$
+	    >>)
+	  t e
+      in
+      let init = 
+	arg_check <:expr<object $table_object_methods _loc l$ end>> 
+      in
+      List.fold_right
+	(fun (_loc, name, label, typ) accu ->
 	<:expr< fun ~ $label$ -> $accu$ >>)
-      l
-      init
+	l init
   in
-  <:str_item<value make = $f$;>>
+  <:str_item<value make = $def$;>>
 
 let expand_table_sig _loc name l =
   <:sig_item<
