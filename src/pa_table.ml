@@ -202,7 +202,7 @@ let row_record_fields _loc l =
 let table_class_type_methods _loc l =
   let init = <:class_sig_item< 
     method row : int -> row;
-    method sub : bool array -> table;
+    method sub : array bool -> table;
   >>
   in
   List.fold_right
@@ -272,11 +272,11 @@ let table_make_str_item _loc l =
 	arg_check <:expr<object $table_object_methods _loc l$ end>> 
       in
       List.fold_right
-	(fun (_loc, name, label, typ) accu ->
-	<:expr< fun ~ $label$ -> $accu$ >>)
+	(fun (_loc, name, _, _) accu ->
+	<:expr< fun ~ $name$ -> $accu$ >>)
 	l init
   in
-  <:str_item<value make = $def$;>>
+  <:str_item<value rec make = $def$;>>
 
 let expand_table_sig _loc name l =
   <:sig_item<
@@ -311,7 +311,7 @@ module $uid:String.capitalize name$ = struct
   $table_make_str_item _loc l$;
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = assert $`bool:false$;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
-  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = assert $`bool:false$;
+  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = failwith "Not implemented";
 end
 >>
 

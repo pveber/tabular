@@ -19,3 +19,10 @@ Library table_syntax
   FindlibParent:      	table
   FindlibName:        	syntax
   CompiledObject:     	byte
+
+Executable example
+  Path: src
+  BuildTools: ocamlbuild
+  MainIs: example.ml
+  BuildDepends: threads, table.syntax, table
+  Install: false
