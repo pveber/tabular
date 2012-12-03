@@ -3,3 +3,4 @@
 <src/pa_table.*>: syntax_camlp4o
 true: debug, annot
 <src/example.*>: syntax_camlp4o, pa_table
+<example/example.*>: syntax_camlp4o, pa_table

@@ -3,6 +3,8 @@ open Camlp4.PreCast
 open Syntax
 open Table_lib
 
+exception Bad_format
+
 (* checks injectivity of [f] on [l] *)
 let check_unique f l =
   let tbl = Hashtbl.create 50 in
@@ -55,7 +57,7 @@ let poly_type _loc poly l =
     in
     <:ctyp< [ $cases$ ] >>
 
-let poly_of_string _loc poly l e =
+let poly_of_string _loc poly l =
   let cases =
     List.fold_right
       (fun (id, label) accu -> 
@@ -63,7 +65,7 @@ let poly_of_string _loc poly l e =
 	  if poly then <:expr< ` $id$ >>
 	  else <:expr< $uid:id$ >> in
 	<:match_case< $str: String.escaped label$ -> $e$ | $accu$ >>)
-      l <:match_case< _ -> raise $uid:e$ >> 
+      l <:match_case< _ -> failwith "Bad format while reading variant" >> 
   in
   <:expr< fun [ $cases$ ] >>
 
@@ -123,14 +125,14 @@ let convert_col_type _loc (typ, opt) =
 
     | `Bool ->
       (<:ctyp< bool >>,
-       <:expr< Table_utils.bool_of_string Bad_format >>,
+       <:expr< bool_of_string >>,
        <:expr< string_of_bool >>,
        Some "bool",
        <:expr< Pervasives.compare >>)
 
     | `Poly_var l ->
       (poly_type _loc true l,
-       poly_of_string _loc true l "Bad_format",
+       poly_of_string _loc true l,
        poly_to_string _loc true l,
        None,
        <:expr< fun a b ->
@@ -140,14 +142,14 @@ let convert_col_type _loc (typ, opt) =
 
     | `Int ->
       (<:ctyp< int >>,
-       <:expr< Table_lib.int_of_string Bad_format >>,
+       <:expr< int_of_string >>,
        <:expr< string_of_int >>,
        Some "int",
        <:expr< Pervasives.compare >>)
 
     | `Float ->
       (<:ctyp< float >>,
-       <:expr< Table_lib.float_of_string Bad_format >>,
+       <:expr< float_of_string >>,
        <:expr< string_of_float >>,
        Some "float",
        <:expr< Pervasives.compare >>)
@@ -190,14 +192,26 @@ let convert_col_type _loc (typ, opt) =
     method compare = cmp
    end)
 
-
+let add_index l =
+  List.mapi
+    (fun i (_loc,name,label,typ) -> _loc, i, name, label, typ)
+    l
 
 let row_record_fields _loc l =
   List.fold_right
-    (fun (_loc, name, label, typ) accu -> 
+    (fun (_loc, _, name, _, typ) accu -> 
       let field = <:ctyp< $lid:name$ : $typ#t$ >> in
       <:ctyp< $field$ ; $accu$ >>)
     l <:ctyp<>>  
+
+let row_of_array _loc l =
+  let fields = 
+    List.fold_right
+      (fun (_loc, index, name, _, typ) accu -> 
+	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
+      l <:rec_binding<>>
+  in
+  <:str_item<value row_of_array a = { $fields$ };>>
 
 let table_class_type_methods _loc l =
   let init = <:class_sig_item< 
@@ -206,14 +220,14 @@ let table_class_type_methods _loc l =
   >>
   in
   List.fold_right
-    (fun (_loc, name, label, typ) accu ->
+    (fun (_loc, _, name, _, typ) accu ->
       <:class_sig_item<method $lid:name$ : array $typ#t$; $accu$>>)
     l init
 
 let table_object_row_method _loc l =
   let body =
     List.fold_right
-      (fun (_loc, name, label, typ) accu ->
+      (fun (_loc, _, name, _, typ) accu ->
 	<:rec_binding< $lid:name$ = $lid:name$.(i) ; $accu$>>)
       l <:rec_binding<>>
   in
@@ -221,10 +235,10 @@ let table_object_row_method _loc l =
 
 let table_object_sub_method _loc = function
   | [] -> assert false (* FIXME: ensure elsewhere that this cannot happen*)
-  | (_loc, name, label, typ) :: _ as l ->
+  | (_loc, _, name, _, _) :: _ as l ->
     let make_call =
       List.fold_left
-	(fun accu (_loc, name, label, typ) ->
+	(fun accu (_loc, _, name, _, _) ->
 	  <:expr< $accu$ ~ $lid:name$ : (Table_lib.Array.sub $lid:name$ b) >>)
 	<:expr< make >> l
     in
@@ -244,7 +258,7 @@ $table_object_sub_method _loc l$;
   >>
   in
   List.fold_right
-    (fun (_loc, name, label, typ) accu ->
+    (fun (_loc, _, name, _, _) accu ->
       <:class_str_item<method $lid:name$ = $lid:name$; $accu$>>)
     l init
 
@@ -257,10 +271,10 @@ let table_make_str_item _loc l =
 	  method sub _ = s;
 	end
       >>
-    | (_loc, name, label, typ) :: t as l ->
+    | (_loc, _, name, _, _) :: t as l ->
       let arg_check e =
 	List.fold_right
-	  (fun (_loc, name2, _, _) accu ->
+	  (fun (_loc, _, name2, _, _) accu ->
 	    <:expr<
 	      if Array.length $lid:name$ <> Array.length $lid:name2$
 	      then raise (Invalid_argument (Printf.sprintf "table#make: col %s and %s have different length" $str:name$ $str:name2$))
@@ -272,11 +286,14 @@ let table_make_str_item _loc l =
 	arg_check <:expr<object $table_object_methods _loc l$ end>> 
       in
       List.fold_right
-	(fun (_loc, name, _, _) accu ->
+	(fun (_loc, _, name, _, _) accu ->
 	<:expr< fun ~ $name$ -> $accu$ >>)
 	l init
   in
   <:str_item<value rec make = $def$;>>
+
+let input_body _loc l =
+  <:expr<failwith "">>
 
 let expand_table_sig _loc name l =
   <:sig_item<
@@ -305,13 +322,14 @@ let expand_table_str _loc name l =
   <:str_item<
 module $uid:String.capitalize name$ = struct
   type row = { $row_record_fields _loc l$ };
+  $row_of_array _loc l$;
   class type table = object
       $table_class_type_methods _loc l$
   end;
   $table_make_str_item _loc l$;
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = assert $`bool:false$;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
-  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = failwith "Not implemented";
+  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
 end
 >>
 
@@ -321,12 +339,12 @@ EXTEND Gram
 
   sig_item: LEVEL "top" [
     [ "type" ; LIDENT "table"; name = LIDENT; "="; 
-      "{"; l = col_list; "}" -> expand_table_sig _loc name l]
+      "{"; l = col_list; "}" -> expand_table_sig _loc name (add_index l)]
   ];
 
   str_item: LEVEL "top" [
     [ "type" ; LIDENT "table"; name = LIDENT; "="; 
-      "{"; l = col_list; "}" -> expand_table_str _loc name l]
+      "{"; l = col_list; "}" -> expand_table_str _loc name (add_index l)]
   ];
 
   variants: [

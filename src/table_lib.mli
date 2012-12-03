@@ -1,3 +1,6 @@
+val int_of_string : exn -> string -> int
+val float_of_string : exn -> string -> float
+
 module Option : sig
   type 'a t = 'a option
   val value : 'a t -> default:'a -> 'a

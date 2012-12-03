@@ -1,3 +1,19 @@
+let bool_of_string e s =
+  try bool_of_string s
+  with _ -> raise e
+
+let int_of_string e s =
+  try int_of_string s
+  with _ -> raise e
+
+let float_of_string e s =
+  try float_of_string s
+  with _ -> raise e
+
+let option_of_string f s =
+  if s = "" then None
+  else Some (f s)
+
 module Option = struct
   type 'a t = 'a option
 
