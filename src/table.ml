@@ -1,11 +1,36 @@
-type ('row, 'a) t = {
-  col_names : string list ;
-  cols : col list ;
-  row : col list -> int -> 'row
-}
-and col =
-  | String of string array
-  | Float of float array
-  | Int of int array
-  | Bool of bool array
+let ( !! ) x = [| x |]
 
+let rec pgcd a b =
+  if a = b then a
+  else if a > b then
+    let r = a mod b in
+    if r = 0 then b
+    else pgcd b r
+  else pgcd b a
+
+let ppcm a b = a * b / (pgcd a b)
+
+let map2 f u v =
+  let m = Array.length u
+  and n = Array.length v in
+  Array.init
+    (ppcm m n)
+    (fun k -> 
+      let i = k mod m
+      and j = k mod n in
+      f u.(i) v.(j))
+
+let ( = )  = map2 ( = )
+let ( < )  = map2 ( < )
+let ( > )  = map2 ( > )
+let ( <> ) = map2 ( <> )
+let ( <= ) = map2 ( <= )
+let ( >= ) = map2 ( >= )
+let ( + )  = map2 ( + )
+let ( - )  = map2 ( - )
+let ( * )  = map2 ( * )
+let ( / )  = map2 ( / )
+let ( +. ) = map2 ( +. )
+let ( -. ) = map2 ( -. )
+let ( *. ) = map2 ( *. )
+let ( /. ) = map2 ( /. )
