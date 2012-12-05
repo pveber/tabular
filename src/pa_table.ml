@@ -315,6 +315,8 @@ module $uid:String.capitalize name$ : sig
     ?header:bool ->
     ?sep:char ->
     in_channel -> table;
+  value of_stream :
+    Stream.t row -> table;
 end
   >>
 
@@ -330,6 +332,7 @@ module $uid:String.capitalize name$ = struct
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = assert $`bool:false$;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
   value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
+  value of_stream xs = failwith "";
 end
 >>
 

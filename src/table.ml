@@ -20,17 +20,20 @@ let map2 f u v =
       and j = k mod n in
       f u.(i) v.(j))
 
-let ( = )  = map2 ( = )
-let ( < )  = map2 ( < )
-let ( > )  = map2 ( > )
-let ( <> ) = map2 ( <> )
-let ( <= ) = map2 ( <= )
-let ( >= ) = map2 ( >= )
-let ( + )  = map2 ( + )
-let ( - )  = map2 ( - )
-let ( * )  = map2 ( * )
-let ( / )  = map2 ( / )
-let ( +. ) = map2 ( +. )
-let ( -. ) = map2 ( -. )
-let ( *. ) = map2 ( *. )
-let ( /. ) = map2 ( /. )
+let ( = ) x y  = map2 ( = ) x y
+let ( < ) x y  = map2 ( < ) x y
+let ( > ) x y  = map2 ( > ) x y
+let ( <> ) x y = map2 ( <> ) x y
+let ( <= ) x y = map2 ( <= ) x y
+let ( >= ) x y = map2 ( >= ) x y
+let ( + ) x y  = map2 ( + ) x y
+let ( - ) x y  = map2 ( - ) x y
+let ( * ) x y  = map2 ( * ) x y
+let ( / ) x y  = map2 ( / ) x y
+let ( +. ) x y = map2 ( +. ) x y
+let ( -. ) x y = map2 ( -. ) x y
+let ( *. ) x y = map2 ( *. ) x y
+let ( /. ) x y = map2 ( /. ) x y
+let ( && ) x y = map2 ( && ) x y
+let ( || ) x y = map2 ( || ) x y
+let not = Array.map not

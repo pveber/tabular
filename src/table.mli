@@ -25,3 +25,7 @@ val ( -. ) : float array -> float array -> float array
 val ( /. ) : float array -> float array -> float array
 val ( *. ) : float array -> float array -> float array
 
+val ( && ) : bool array -> bool array -> bool array
+val ( || ) : bool array -> bool array -> bool array
+val not : bool array -> bool array
+
