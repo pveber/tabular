@@ -6,18 +6,18 @@ end
 
 module X : sig
   type table bed = {
-    chr : String ;
+    chr        : String ;
     st "start" : int ;
     ed "end"   : int ;
-    strand : [`Sense "+" | `Antisense "-"] ;
+    strand     : [`Sense "+" | `Antisense "-"] ;
   }
 end =
 struct
   type table bed = {
-    chr : String ;
+    chr        : String ;
     st "start" : int ;
     ed "end"   : int ;
-    strand : [`Sense "+" | `Antisense "-"] ;
+    strand     : [`Sense "+" | `Antisense "-"] ;
   }
 end
 
