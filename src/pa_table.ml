@@ -111,7 +111,7 @@ let eval_string s = Camlp4.Struct.Token.Eval.string ~strict:() s
 let rec string_of_ident = function
   | <:ident< $lid:s$ >> -> s
   | <:ident< $uid:s$ >> -> s
-  | _ -> assert false
+  | _ -> failwith "string_of_ident"
  
 (* provides a code generation-friendly representation of the type of a column *)
 let convert_col_type _loc (typ, opt) =
@@ -213,10 +213,30 @@ let row_of_array _loc l =
   in
   <:str_item<value row_of_array a = { $fields$ };>>
 
+let array_of_row _loc l =
+  let elts = 
+    List.fold_right
+      (fun (_loc, index, name, _, typ) accu -> 
+	<:expr< $typ#to_string$ row.$lid:name$ ; $accu$ >>)
+      l <:expr<>>
+  in
+  <:str_item<value array_of_row row = [| $elts$ |];>>
+    
+let list_of_row _loc l =
+  let elts = 
+    List.fold_right
+      (fun (_loc, index, name, _, typ) accu -> 
+	<:expr< [ ($typ#to_string$ row.$lid:name$) :: $accu$ ] >>)
+      l <:expr< [] >>
+  in
+  <:str_item<value list_of_row row = $elts$;>>
+
+
 let table_class_type_methods _loc l =
   let init = <:class_sig_item< 
     method row : int -> row;
     method sub : array bool -> table;
+    method length : int
   >>
   in
   List.fold_right
@@ -234,7 +254,7 @@ let table_object_row_method _loc l =
   <:class_str_item<method row i = { $body$ };>>
 
 let table_object_sub_method _loc = function
-  | [] -> assert false (* FIXME: ensure elsewhere that this cannot happen*)
+  | [] -> failwith "table_object_sub_method" (* FIXME: ensure elsewhere that this cannot happen*)
   | (_loc, _, name, _, _) :: _ as l ->
     let make_call =
       List.fold_left
@@ -251,10 +271,16 @@ let table_object_sub_method _loc = function
     in
     <:class_str_item<method sub b = $body$;>>
 
+let table_object_length_method _loc = function
+  | [] -> failwith "table_object_length_method" (* FIXME: ensure elsewhere that this cannot happen*)
+  | (_loc, _, name, _, _) :: _ ->
+      <:class_str_item<method length = Array.length $lid:name$;>>
+
 let table_object_methods _loc l =
   let init = <:class_str_item<
 $table_object_row_method _loc l$;
 $table_object_sub_method _loc l$;
+$table_object_length_method _loc l$;
   >>
   in
   List.fold_right
@@ -317,7 +343,13 @@ let input_body _loc l =
 let output_body _loc l =
   <:expr<
     Table_lib.(
-      failwith "output not implemented"
+      for i = 0 to table#length - 1 do
+        table#row i
+        |! list_of_row
+        |! String.concat "\t"
+        |! output_string oc ;
+        output_char oc '\n'
+      done
     )
   >>
 
@@ -325,6 +357,9 @@ let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
   type row = { $row_record_fields _loc l$ };
+  value array_of_row : row -> array string;
+  value list_of_row : row -> list string;
+  value row_of_array : array string -> row;
   class type table = object
       $table_class_type_methods _loc l$
   end;
@@ -351,11 +386,13 @@ let expand_table_str _loc name l =
 module $uid:String.capitalize name$ = struct
   type row = { $row_record_fields _loc l$ };
   $row_of_array _loc l$;
+  $list_of_row _loc l$;
+  $array_of_row _loc l$;
   class type table = object
       $table_class_type_methods _loc l$
   end;
   $table_make_str_item _loc l$;
-  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = $output_body _loc l$;
+  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = $output_body _loc l$;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
   value of_stream xs = $of_stream_body _loc l$;
   value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
