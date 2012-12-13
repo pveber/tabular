@@ -30,6 +30,8 @@ let bed =
     ]
   )
 
+(* Filters the above [bed] value in order to keep intervals on the positive
+   strand and prints the result in tabular format *)
 let () = 
   Bed.output 
     stdout 
