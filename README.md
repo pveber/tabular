@@ -3,6 +3,11 @@ TABLE
 
 `table` is a syntax extension derived from [col](https://github.com/pveber/col), which is useful to handle data that fit under tabular format. As in `col`, `table` generates helper types, functions and objects from a record type-like definition.
 
+The main evolution with respect to `col` is the representation of a
+table as an object, and the introduction of operation that enable
+manipulations similar to those used in [R](http://www.r-project.org/),
+with data frames.
+
 ```
 type table bed = {
   chr        : String ;
