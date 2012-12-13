@@ -12,7 +12,7 @@ manipulations similar to those used in [R](http://www.r-project.org/),
 with data frames.
 
 Here is an example:
-```
+```ocaml
 type table bed = {
   chr        : String ;
   st "start" : int ;
