@@ -292,8 +292,34 @@ let table_make_str_item _loc l =
   in
   <:str_item<value rec make = $def$;>>
 
+let of_stream_body _loc l =
+  let fun_call =
+    List.fold_right
+      (fun (_loc, _, name, _, _) accu ->
+        <:expr< $accu$ ~ $name$ : (Array.map (fun row -> row.$lid:name$) rows) >>)
+      l <:expr<make>>
+  in
+  <:expr<
+    let rows = Table_lib.Stream.to_array xs in
+    $fun_call$
+  >>
+
 let input_body _loc l =
-  <:expr<failwith "">>
+  <:expr<
+    Table_lib.(
+      Stream.lines_of ic
+      |! Stream.map ~f:(String.split ~sep:'\t')
+      |! Stream.map ~f:row_of_array
+      |! of_stream
+    )
+  >>
+
+let output_body _loc l =
+  <:expr<
+    Table_lib.(
+      failwith "output not implemented"
+    )
+  >>
 
 let expand_table_sig _loc name l =
   <:sig_item<
@@ -329,10 +355,10 @@ module $uid:String.capitalize name$ = struct
       $table_class_type_methods _loc l$
   end;
   $table_make_str_item _loc l$;
-  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = assert $`bool:false$;
+  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc table = $output_body _loc l$;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
+  value of_stream xs = $of_stream_body _loc l$;
   value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
-  value of_stream xs = failwith "";
 end
 >>
 

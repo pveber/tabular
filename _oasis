@@ -28,5 +28,5 @@ Executable example
   Path:			src
   BuildTools:		ocamlbuild
   MainIs:		example.ml
-  BuildDepends:		table_library, table.syntax
+  BuildDepends:		table, table.syntax
   Install: 		false
