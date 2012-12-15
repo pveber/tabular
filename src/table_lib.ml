@@ -122,16 +122,23 @@ module Stream = struct
     from (fun _ -> try Some (input_line ic) with End_of_file -> None)
 end
 
+let output_list sep oc = function
+| [] -> ()
+| h :: t ->
+    output_string oc h ;
+    List.iter (fun x -> output_string oc sep ; output_string oc x) t
 
-
-
-
-
-
-
-
-
-
+let output ~header ~list_of_row oc table =
+  if header then (
+    output_list "\t" oc table#labels ;
+    output_char oc '\n'
+  ) ;
+  for i = 0 to table#length - 1 do
+    table#row i
+    |! list_of_row
+    |! output_list "\t" oc ;
+    output_char oc '\n'
+  done
 
 
 

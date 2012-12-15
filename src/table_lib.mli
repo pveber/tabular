@@ -28,6 +28,13 @@ module Stream : sig
   val lines_of : in_channel -> string t
 end
 
+val output : 
+  header:bool -> 
+  list_of_row:('row -> string list) ->
+  out_channel ->
+  < length : int ; labels : string list ; row : int -> 'row ; .. > ->
+  unit
+
 
 
 

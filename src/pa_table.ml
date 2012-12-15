@@ -192,10 +192,18 @@ let convert_col_type _loc (typ, opt) =
     method compare = cmp
    end)
 
+(* adds the index of each field in the list of field defined by the
+   type *)
 let add_index l =
   List.mapi
     (fun i (_loc,name,label,typ) -> _loc, i, name, label, typ)
     l
+
+(*
+ ******************
+ * ROW CONVERSION *
+ ******************
+ *)
 
 let row_record_fields _loc l =
   List.fold_right
@@ -236,7 +244,8 @@ let table_class_type_methods _loc l =
   let init = <:class_sig_item< 
     method row : int -> row;
     method sub : array bool -> table;
-    method length : int
+    method length : int;
+    method labels : list string;
   >>
   in
   List.fold_right
@@ -276,11 +285,21 @@ let table_object_length_method _loc = function
   | (_loc, _, name, _, _) :: _ ->
       <:class_str_item<method length = Array.length $lid:name$;>>
 
+let table_object_labels_method _loc l =
+  let labels = 
+    List.fold_right
+      (fun (_loc, _, _, label, _) accu -> 
+	<:expr< [ $str:label$ :: $accu$ ] >>)
+      l <:expr< [] >>
+  in
+  <:class_str_item<method labels = $labels$;>>
+
 let table_object_methods _loc l =
   let init = <:class_str_item<
 $table_object_row_method _loc l$;
 $table_object_sub_method _loc l$;
 $table_object_length_method _loc l$;
+$table_object_labels_method _loc l$;
   >>
   in
   List.fold_right
@@ -340,19 +359,6 @@ let input_body _loc l =
     )
   >>
 
-let output_body _loc l =
-  <:expr<
-    Table_lib.(
-      for i = 0 to table#length - 1 do
-        table#row i
-        |! list_of_row
-        |! String.concat "\t"
-        |! output_string oc ;
-        output_char oc '\n'
-      done
-    )
-  >>
-
 let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
@@ -360,6 +366,7 @@ module $uid:String.capitalize name$ : sig
   value array_of_row : row -> array string;
   value list_of_row : row -> list string;
   value row_of_array : array string -> row;
+  value string_of_row : row -> string;
   class type table = object
       $table_class_type_methods _loc l$
   end;
@@ -388,11 +395,12 @@ module $uid:String.capitalize name$ = struct
   $row_of_array _loc l$;
   $list_of_row _loc l$;
   $array_of_row _loc l$;
+  value string_of_row r = String.concat "\t" (list_of_row r);
   class type table = object
       $table_class_type_methods _loc l$
   end;
   $table_make_str_item _loc l$;
-  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = $output_body _loc l$;
+  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = Table_lib.output ~header ~list_of_row oc table;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
   value of_stream xs = $of_stream_body _loc l$;
   value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
