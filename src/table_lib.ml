@@ -1,3 +1,4 @@
+let id = fun x -> x
 let ( |! ) x f = f x
 
 let bool_of_string e s =

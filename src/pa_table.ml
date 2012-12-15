@@ -118,8 +118,8 @@ let convert_col_type _loc (typ, opt) =
   let conv = match typ with
     | `String ->
       (<:ctyp< string >>,
-       <:expr< Table_utils.id >>,
-       <:expr< Table_utils.id >>,
+       <:expr< Table_lib.id >>,
+       <:expr< Table_lib.id >>,
        Some "string",
        <:expr< String.compare >>)
 

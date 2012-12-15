@@ -1,3 +1,4 @@
+val id : 'a -> 'a
 val ( |! ) : 'a -> ('a -> 'b) -> 'b
 
 val int_of_string : exn -> string -> int

@@ -6,7 +6,7 @@ Authors:     Philippe Veber
 License:     GPL-3.0
 Plugins:     META (0.3), DevFiles (0.3)
 
-Library table_library
+Library table
   Path:			src
   BuildTools: 		ocamlbuild
   Modules:    		Table, Table_lib
@@ -17,7 +17,7 @@ Library table_syntax
   BuildTools: 		ocamlbuild
   BuildDepends:		camlp4, camlp4.lib, camlp4.quotations.r, camlp4.extend, table
   Modules:    		Pa_table
-  FindlibParent:      	table_library
+  FindlibParent:      	table
   FindlibName:        	syntax
   XMETAType:          	syntax
   XMETARequires:      	camlp4, table
