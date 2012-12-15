@@ -349,16 +349,6 @@ let of_stream_body _loc l =
     $fun_call$
   >>
 
-let input_body _loc l =
-  <:expr<
-    Table_lib.(
-      Stream.lines_of ic
-      |! Stream.map ~f:(String.split ~sep:'\t')
-      |! Stream.map ~f:row_of_array
-      |! of_stream
-    )
-  >>
-
 let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
@@ -403,7 +393,7 @@ module $uid:String.capitalize name$ = struct
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = Table_lib.output ~header ~list_of_row oc table;
   value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
   value of_stream xs = $of_stream_body _loc l$;
-  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') ic = $input_body _loc l$;
+  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:false$) ?(sep = '\t') ic = Table_lib.input ~header ~row_of_array ~of_stream ic;
 end
 >>
 

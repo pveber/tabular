@@ -28,6 +28,13 @@ module Stream : sig
   val lines_of : in_channel -> string t
 end
 
+val input : 
+  header:bool -> 
+  row_of_array:(string array -> 'row) ->
+  of_stream:('row Stream.t -> 'table) ->
+  in_channel ->
+  'table
+
 val output : 
   header:bool -> 
   list_of_row:('row -> string list) ->

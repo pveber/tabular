@@ -38,4 +38,7 @@ let () =
     Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 ```
 
-
+This work is still in development. Next tasks before a first release are:
+- take into account all options for input/output
+- an example of the generated signature for documentation
+- reintroduce col's "type tag" construct

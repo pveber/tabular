@@ -122,6 +122,12 @@ module Stream = struct
     from (fun _ -> try Some (input_line ic) with End_of_file -> None)
 end
 
+let input ~header ~row_of_array ~of_stream ic =
+  Stream.lines_of ic
+  |! Stream.map ~f:(String.split ~sep:'\t')
+  |! Stream.map ~f:row_of_array
+  |! of_stream
+
 let output_list sep oc = function
 | [] -> ()
 | h :: t ->
