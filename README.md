@@ -14,7 +14,7 @@ with data frames.
 Here is an example:
 ```ocaml
 type table bed = {
-  chr        : String ;
+  chr        : string ;
   st "start" : int ;
   ed "end"   : int ;
   strand     : [`Sense "+" | `Antisense "-"] ;
