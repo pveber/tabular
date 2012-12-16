@@ -330,7 +330,7 @@ let table_make_str_item _loc l =
 	  t e
       in
       let init = 
-	arg_check <:expr<object $table_object_methods _loc l$ end>> 
+	arg_check <:expr<object (self) $table_object_methods _loc l$ end>> 
       in
       List.fold_right
 	(fun (_loc, _, name, _, _) accu ->
