@@ -387,7 +387,7 @@ module $uid:String.capitalize name$ = struct
   $row_of_array _loc l$;
   $list_of_row _loc l$;
   $array_of_row _loc l$;
-  value string_of_row r = String.concat "\t" (list_of_row r);
+  value string_of_row r = Table_lib.String.concat "\t" (list_of_row r);
   class type table = object
       $table_class_type_methods _loc l$
   end;
