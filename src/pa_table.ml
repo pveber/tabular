@@ -301,7 +301,7 @@ $table_object_row_method _loc l$;
 $table_object_sub_method _loc l$;
 $table_object_length_method _loc l$;
 $table_object_labels_method _loc l$;
-method iter f = for i = 0 to self#length do f (self#row i) done;
+method iter f = for i = 0 to self#length - 1 do f (self#row i) done;
   >>
   in
   List.fold_right
