@@ -29,3 +29,14 @@ val ( && ) : bool array -> bool array -> bool array
 val ( || ) : bool array -> bool array -> bool array
 val not : bool array -> bool array
 
+val count : bool array -> int
+
+
+
+
+
+
+
+
+
+

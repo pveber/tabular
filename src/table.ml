@@ -37,3 +37,25 @@ let ( /. ) x y = map2 ( /. ) x y
 let ( && ) x y = map2 ( && ) x y
 let ( || ) x y = map2 ( || ) x y
 let not = Array.map not
+
+let count x = Array.fold_left Pervasives.(fun accu b -> if b then accu + 1 else accu) 0 x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
