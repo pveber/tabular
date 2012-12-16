@@ -33,7 +33,22 @@ let bed =
     ]
   )
 
+let filtered_table = Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 let () = 
-  Bed.output 
-    stdout 
-    Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
+  Bed.output stdout filtered_table ;
+  print_newline () ;
+  Bed.latex_output stdout filtered_table ;
+  print_newline ()
+
+
+    
+
+
+
+
+
+
+
+
+
+

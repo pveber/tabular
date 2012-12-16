@@ -391,7 +391,7 @@ module $uid:String.capitalize name$ = struct
   end;
   $table_make_str_item _loc l$;
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = Table_lib.output ~header ~list_of_row oc table;
-  value latex_output ?(line_numbers = $`bool:false$) ic table = assert $`bool:false$;
+  value latex_output ?(line_numbers = $`bool:false$) oc table = Table_lib.latex_output ~list_of_row oc table;
   value of_stream xs = $of_stream_body _loc l$;
   value input ?(line_numbers = $`bool:false$) ?(header = $`bool:false$) ?(sep = '\t') ic = Table_lib.input ~header ~row_of_array ~of_stream ic;
 end

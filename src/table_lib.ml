@@ -1,3 +1,5 @@
+open Printf
+
 let id = fun x -> x
 let ( |! ) x f = f x
 
@@ -145,6 +147,43 @@ let output ~header ~list_of_row oc table =
     |! output_list "\t" oc ;
     output_char oc '\n'
   done
+
+let replace ~char ~by x =
+  let rec aux i =
+    try 
+      let j = String.index_from x i char in
+      by ^ (aux j)
+    with Not_found -> String.(
+      if i = 0 then x
+      else sub x i (length x - i) (* slight optimisation *)
+    )
+  in
+  aux 0
+  
+let latex_escape = replace ~char:'_' ~by:"\\_"
+
+let latex_output ~list_of_row oc table =
+  fprintf oc
+    "\\begin{tabular}{%s}\n" 
+    (List.map (fun _ -> "c") table#labels |! String.concat "") ;
+
+  output_list 
+    " & " oc 
+    (List.map (fun l -> sprintf "{ \\bf %s }" (latex_escape l)) table#labels) ;
+  output_string oc "\\\\\n\\hline\n" ;
+  
+  for i = 0 to table#length - 1 do
+    table#row i
+    |! list_of_row
+    |! List.map latex_escape
+    |! output_list " & " oc ;
+    output_string oc "\\\\\n"
+  done ;
+
+  output_string oc "\\end{tabular}"
+
+
+
 
 
 

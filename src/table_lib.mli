@@ -42,21 +42,8 @@ val output :
   < length : int ; labels : string list ; row : int -> 'row ; .. > ->
   unit
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+val latex_output : 
+  list_of_row:('row -> string list) ->
+  out_channel ->
+  < length : int ; labels : string list ; row : int -> 'row ; .. > ->
+  unit
