@@ -152,7 +152,7 @@ let replace ~char ~by x =
   let rec aux i =
     try 
       let j = String.index_from x i char in
-      by ^ (aux j)
+      (String.sub x i (j - i)) ^ by ^ (aux (j + 1))
     with Not_found -> String.(
       if i = 0 then x
       else sub x i (length x - i) (* slight optimisation *)

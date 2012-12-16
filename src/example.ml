@@ -7,16 +7,16 @@ end
 module X : sig
   type table bed = {
     chr        : String ;
-    st "start" : int ;
-    ed "end"   : int ;
+    st "chrom_start" : int ;
+    ed "chrom_end"   : int ;
     strand     : [`Sense "+" | `Antisense "-"] ;
   }
 end =
 struct
   type table bed = {
     chr        : String ;
-    st "start" : int ;
-    ed "end"   : int ;
+    st "chrom_start" : int ;
+    ed "chrom_end"   : int ;
     strand     : [`Sense "+" | `Antisense "-"] ;
   }
 end
