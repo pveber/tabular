@@ -21,11 +21,13 @@ end
 
 module Stream : sig
   include module type of Stream with type 'a t = 'a Stream.t
+  val empty : unit -> 'a t
   val next: 'a t -> 'a option
   val next_exn: 'a t -> 'a
   val map : 'a t -> f:('a -> 'b) -> 'b t
   val to_array : 'a t -> 'a array
   val lines_of : in_channel -> string t
+  val init : int -> f:(int -> 'a) -> 'a t
 end
 
 val input : 

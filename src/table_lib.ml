@@ -99,6 +99,8 @@ end
 module Stream = struct
   include Stream
 
+  let empty () = from (fun _ -> None)
+
   let next_exn = next
   let next s = try Some (next_exn s) with Stream.Failure -> None
 
@@ -122,6 +124,17 @@ module Stream = struct
 
   let lines_of ic =
     from (fun _ -> try Some (input_line ic) with End_of_file -> None)
+
+  let init n ~f =
+    if n < 0 then empty ()
+    else (
+      let aux i = 
+        if i < n then Some (f i)
+        else None
+      in
+      from aux
+    )
+
 end
 
 let input ~header ~row_of_array ~of_stream ic =

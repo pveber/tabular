@@ -246,7 +246,8 @@ let table_class_type_methods _loc l =
     method sub : array bool -> table;
     method length : int;
     method labels : list string;
-    method iter : (row -> unit) -> unit
+    method iter : (row -> unit) -> unit;
+    method stream : Stream.t row;
   >>
   in
   List.fold_right
@@ -302,6 +303,7 @@ $table_object_sub_method _loc l$;
 $table_object_length_method _loc l$;
 $table_object_labels_method _loc l$;
 method iter f = for i = 0 to self#length - 1 do f (self#row i) done;
+method stream = Table_lib.Stream.init self#length self#row
   >>
   in
   List.fold_right
