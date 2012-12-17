@@ -364,6 +364,7 @@ module $uid:String.capitalize name$ : sig
   class type table = object
       $table_class_type_methods _loc l$
   end;
+  type s = < row : row ; table :table >;
   value output : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -393,6 +394,7 @@ module $uid:String.capitalize name$ = struct
   class type table = object
       $table_class_type_methods _loc l$
   end;
+  type s = < row : row ; table :table >;
   $table_make_str_item _loc l$;
   value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = Table_lib.output ~header ~list_of_row oc table;
   value latex_output ?(line_numbers = $`bool:false$) oc table = Table_lib.latex_output ~list_of_row oc table;
