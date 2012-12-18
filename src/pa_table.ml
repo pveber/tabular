@@ -341,7 +341,7 @@ let table_make_str_item _loc l =
   in
   <:str_item<value rec make = $def$;>>
 
-let of_stream_body _loc l =
+let table_of_stream_body _loc l =
   let fun_call =
     List.fold_right
       (fun (_loc, _, name, _, _) accu ->
@@ -357,49 +357,30 @@ let expand_table_sig _loc name l =
   <:sig_item<
 module $uid:String.capitalize name$ : sig
   type row = { $row_record_fields _loc l$ };
-  value array_of_row : row -> array string;
-  value list_of_row : row -> list string;
-  value row_of_array : array string -> row;
-  value string_of_row : row -> string;
   class type table = object
       $table_class_type_methods _loc l$
   end;
-  type s = < row : row ; table :table >;
-  value output : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    out_channel -> table -> unit;
-  value latex_output : 
-    ?line_numbers:bool ->
-    out_channel -> table -> unit;
-  value input : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    in_channel -> table;
-  value of_stream :
-    Stream.t row -> table;
+  include Table.S with type row := row
+                  and type table := table;
 end
   >>
 
 let expand_table_str _loc name l =
   <:str_item<
 module $uid:String.capitalize name$ = struct
-  type row = { $row_record_fields _loc l$ };
-  $row_of_array _loc l$;
-  $list_of_row _loc l$;
-  $array_of_row _loc l$;
-  value string_of_row r = Table_lib.String.concat "\t" (list_of_row r);
-  class type table = object
-      $table_class_type_methods _loc l$
+  module T = struct
+    type row = { $row_record_fields _loc l$ };
+    class type table = object
+        $table_class_type_methods _loc l$
+    end;
+    $row_of_array _loc l$;
+    $list_of_row _loc l$;
+    $array_of_row _loc l$;
+    $table_make_str_item _loc l$;
+    value table_of_stream xs = $table_of_stream_body _loc l$;
   end;
-  type s = < row : row ; table :table >;
-  $table_make_str_item _loc l$;
-  value output ?(line_numbers = $`bool:false$) ?(header = $`bool:true$) ?(sep = '\t') oc (table : table) = Table_lib.output ~header ~list_of_row oc table;
-  value latex_output ?(line_numbers = $`bool:false$) oc table = Table_lib.latex_output ~list_of_row oc table;
-  value of_stream xs = $of_stream_body _loc l$;
-  value input ?(line_numbers = $`bool:false$) ?(header = $`bool:false$) ?(sep = '\t') ic = Table_lib.input ~header ~row_of_array ~of_stream ic;
+  include T;
+  include Table_lib.Impl(T);
 end
 >>
 
@@ -417,40 +398,40 @@ EXTEND Gram
       "{"; l = col_list; "}" -> expand_table_str _loc name (add_index l)]
   ];
 
-  variants: [
-    [ l = poly_var -> (true, l)
-    | l = mono_var -> (false, l) ]
-  ];
+  (* variants: [ *)
+  (*   [ l = poly_var -> (true, l) *)
+  (*   | l = mono_var -> (false, l) ] *)
+  (* ]; *)
 
   poly_var: [
-    [ "["; 
-      l = 
-	LIST1 [ 
-	  "`"; 
-	  id = [ id = ident -> (_loc, string_of_ident id) ];
-	  label = OPT [ s = STRING -> (_loc, eval_string s) ] ->
-	  (id, Option.value ~default:id label) 
-	] 
-	SEP "|";
+    [ "[";
+      l =
+        LIST1 [
+          "`";
+          id = [ id = ident -> (_loc, string_of_ident id) ];
+          label = OPT [ s = STRING -> (_loc, eval_string s) ] ->
+          (id, Option.value ~default:id label)
+        ]
+        SEP "|";
       "]" ->
       check_unique fst l;
       check_unique snd l;
       List.map (fun ((_, a), (_, b)) -> (a, b)) l ]
   ];
 
-  mono_var: [
-    [ OPT "|";
-      l = 
-	LIST1 [ 
-	  id = [ id = UIDENT -> (_loc, id) ];
-	  label = OPT [ s = STRING -> (_loc, eval_string s) ] ->
-	  (id, Option.value ~default:id label) 
-	] 
-	SEP "|" ->
-        check_unique fst l;
-        check_unique snd l;
-	List.map (fun ((_, a), (_, b)) -> (a, b)) l ]
-  ];
+  (* mono_var: [ *)
+  (*   [ OPT "|"; *)
+  (*     l =  *)
+  (*       LIST1 [  *)
+  (*         id = [ id = UIDENT -> (_loc, id) ]; *)
+  (*         label = OPT [ s = STRING -> (_loc, eval_string s) ] -> *)
+  (*         (id, Option.value ~default:id label)  *)
+  (*       ]  *)
+  (*       SEP "|" -> *)
+  (*       check_unique fst l; *)
+  (*       check_unique snd l; *)
+  (*       List.map (fun ((_, a), (_, b)) -> (a, b)) l ] *)
+  (* ]; *)
 
 
 

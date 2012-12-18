@@ -1,3 +1,36 @@
+
+module type S = sig
+  type row
+  type table
+  type s = < row : row ; table :table >
+  val table_to_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    table -> out_channel -> unit
+  val latex_table_to_channel : 
+    ?line_numbers:bool ->
+    table -> out_channel -> unit
+  val table_of_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> table
+  val table_of_stream :
+    row Stream.t -> table
+  val stream_of_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> row Stream.t
+  val stream_to_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    row Stream.t ->     
+    out_channel -> unit
+end
+
 let ( !! ) x = [| x |]
 
 let rec pgcd a b =

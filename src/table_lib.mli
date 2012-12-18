@@ -30,22 +30,42 @@ module Stream : sig
   val init : int -> f:(int -> 'a) -> 'a t
 end
 
-val input : 
-  header:bool -> 
-  row_of_array:(string array -> 'row) ->
-  of_stream:('row Stream.t -> 'table) ->
-  in_channel ->
-  'table
+module type TabularType = sig
+  type row
+  type table = private < labels : string list; length : int; row : int -> row; .. >
+  val list_of_row : row -> string list
+  val row_of_array : string array -> row
+  val table_of_stream : row Stream.t -> table
+end
 
-val output : 
-  header:bool -> 
-  list_of_row:('row -> string list) ->
-  out_channel ->
-  < length : int ; labels : string list ; row : int -> 'row ; .. > ->
-  unit
+module Impl(X : TabularType) : sig
 
-val latex_output : 
-  list_of_row:('row -> string list) ->
-  out_channel ->
-  < length : int ; labels : string list ; row : int -> 'row ; .. > ->
-  unit
+  type s = < row : X.row ; table :X.table >
+  val table_to_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    X.table -> out_channel -> unit
+  val latex_table_to_channel : 
+    ?line_numbers:bool ->
+    X.table -> out_channel -> unit
+  val table_of_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> X.table
+  val table_of_stream :
+    X.row Stream.t -> X.table
+  val stream_of_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> X.row Stream.t
+  val stream_to_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    X.row Stream.t ->     
+    out_channel -> unit
+
+end

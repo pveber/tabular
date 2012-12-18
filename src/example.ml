@@ -24,7 +24,7 @@ end
 open X
 
 let bed = 
-  Bed.of_stream (
+  Bed.table_of_stream (
     Stream.of_list [
       { Bed.chr = "chr1" ; st = 1 ; ed = 3 ; strand = `Sense } ;
       { Bed.chr = "chr1" ; st = 3 ; ed = 5 ; strand = `Sense } ;
@@ -35,9 +35,9 @@ let bed =
 
 let filtered_table = Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 let () = 
-  Bed.output stdout filtered_table ;
+  Bed.table_to_channel filtered_table stdout ;
   print_newline () ;
-  Bed.latex_output stdout filtered_table ;
+  Bed.latex_table_to_channel filtered_table stdout ;
   print_newline ()
 
 

@@ -149,7 +149,7 @@ let output_list sep oc = function
     output_string oc h ;
     List.iter (fun x -> output_string oc sep ; output_string oc x) t
 
-let output ~header ~list_of_row oc table =
+let output ~header ~list_of_row table oc =
   if header then (
     output_list "\t" oc table#labels ;
     output_char oc '\n'
@@ -175,7 +175,7 @@ let replace ~char ~by x =
   
 let latex_escape = replace ~char:'_' ~by:"\\_"
 
-let latex_output ~list_of_row oc table =
+let latex_output ~list_of_row table oc =
   fprintf oc
     "\\begin{tabular}{%s}\n" 
     (List.map (fun _ -> "c") table#labels |! String.concat "") ;
@@ -194,6 +194,45 @@ let latex_output ~list_of_row oc table =
   done ;
 
   output_string oc "\\end{tabular}"
+
+
+module type TabularType = sig
+  type row
+  type table = private < labels : string list; length : int; row : int -> row; .. >
+  val list_of_row : row -> string list
+  val row_of_array : string array -> row
+  val table_of_stream : row Stream.t -> table
+end
+
+module Impl(X : TabularType) = struct
+  include X
+  type s = < row : row ; table :table >
+
+  let string_of_row r = String.concat "\t" (X.list_of_row r)
+
+  let table_to_channel
+      ?(line_numbers = false) 
+      ?(header = true) 
+      ?(sep = '\t') 
+      table oc =
+    output ~header ~list_of_row table oc
+
+  let latex_table_to_channel ?(line_numbers = false) table oc = 
+    latex_output ~list_of_row table oc
+
+  let table_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
+    input ~header ~row_of_array ~of_stream:table_of_stream ic
+
+  let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
+    input ~header ~row_of_array ~of_stream:(fun x -> x) ic
+
+  let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
+    assert false
+end
+
+
+
+
 
 
 
