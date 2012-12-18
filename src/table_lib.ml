@@ -217,11 +217,21 @@ module Impl(X : TabularType) = struct
       table oc =
     output ~header ~list_of_row table oc
 
+  let table_to_file ?line_numbers ?header ?sep table path =
+    let oc = open_out path in
+    table_to_channel ?line_numbers ?header ?sep table oc ;
+    close_out oc
+
   let latex_table_to_channel ?(line_numbers = false) table oc = 
     latex_output ~list_of_row table oc
 
   let table_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:table_of_stream ic
+
+  let table_of_file ?line_numbers ?header ?sep path =
+    let ic = open_in path in
+    let r = table_of_channel ?line_numbers ?header ?sep ic in
+    close_in ic ; r
 
   let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:(fun x -> x) ic

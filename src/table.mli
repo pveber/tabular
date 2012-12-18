@@ -15,6 +15,11 @@ module type S = sig
     ?header:bool ->
     ?sep:char ->
     table -> out_channel -> unit
+  val table_to_file : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    table -> string -> unit
   val latex_table_to_channel : 
     ?line_numbers:bool ->
     table -> out_channel -> unit
@@ -23,6 +28,11 @@ module type S = sig
     ?header:bool ->
     ?sep:char ->
     in_channel -> table
+  val table_of_file : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    string -> table
   val table_of_stream :
     row Stream.t -> table
   val stream_of_channel : 
