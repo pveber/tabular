@@ -43,6 +43,7 @@ module type S = sig
     in_channel -> row Stream.t
   val stream_to_channel : 
     ?line_numbers:bool ->
+    ?header:bool ->
     ?sep:char ->
     out_channel -> 
     row Stream.t ->     

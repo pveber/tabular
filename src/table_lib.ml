@@ -177,10 +177,10 @@ let replace ~char ~by x =
   
 let latex_escape = replace ~char:'_' ~by:"\\_"
 
-let latex_output ~list_of_row oc table =
+let latex_output ~header ~list_of_row oc table =
   fprintf oc
     "\\begin{tabular}{%s}\n" 
-    (List.map (fun _ -> "c") table#labels |! String.concat "") ;
+    (List.map (fun _ -> "c") header |! String.concat "") ;
 
   output_list 
     " & " oc 
@@ -201,6 +201,7 @@ let latex_output ~list_of_row oc table =
 module type TabularType = sig
   type row
   type table = private < labels : string list; length : int; row : int -> row; stream : row Stream.t ; .. >
+  val labels : string list
   val list_of_row : row -> string list
   val row_of_array : string array -> row
   val table_of_stream : row Stream.t -> table
@@ -217,10 +218,7 @@ module Impl(X : TabularType) = struct
       ?(header = true) 
       ?(sep = '\t') 
       oc table =
-    output 
-      ?header:(if header then Some table#labels else None)
-      ~list_of_row 
-      oc table#stream
+    output ?header:(if header then Some X.labels else None) ~list_of_row oc table#stream
 
   let table_to_file ?line_numbers ?header ?sep table path =
     let oc = open_out path in
@@ -228,7 +226,7 @@ module Impl(X : TabularType) = struct
     close_out oc
 
   let latex_table_to_channel ?(line_numbers = false) oc table = 
-    latex_output ~list_of_row oc table
+    latex_output ~header:X.labels ~list_of_row oc table
 
   let table_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:table_of_stream ic
@@ -241,8 +239,8 @@ module Impl(X : TabularType) = struct
   let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:(fun x -> x) ic
 
-  let stream_to_channel ?(line_numbers = false) ?(sep = '\t') oc rows = 
-    output ~list_of_row oc rows
+  let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') oc rows = 
+    output ?header:(if header then Some X.labels else None) ~list_of_row oc rows
 end
 
 

@@ -33,6 +33,7 @@ end
 module type TabularType = sig
   type row
   type table = private < labels : string list; length : int; row : int -> row; stream : row Stream.t ; .. >
+  val labels : string list
   val list_of_row : row -> string list
   val row_of_array : string array -> row
   val table_of_stream : row Stream.t -> table
@@ -73,6 +74,7 @@ module Impl(X : TabularType) : sig
     in_channel -> X.row Stream.t
   val stream_to_channel : 
     ?line_numbers:bool ->
+    ?header:bool ->
     ?sep:char ->
     out_channel -> 
     X.row Stream.t ->     

@@ -255,6 +255,15 @@ let table_class_type_methods _loc l =
       <:class_sig_item<method $lid:name$ : array $typ#t$; $accu$>>)
     l init
 
+let labels_item _loc l =
+  let labels = 
+    List.fold_right
+      (fun (_loc, _, _, label, _) accu -> 
+	<:expr< [ $str:label$ :: $accu$ ] >>)
+      l <:expr< [] >>
+  in
+  <:str_item<value labels = $labels$;>>
+    
 let table_object_row_method _loc l =
   let body =
     List.fold_right
@@ -288,13 +297,7 @@ let table_object_length_method _loc = function
       <:class_str_item<method length = Array.length $lid:name$;>>
 
 let table_object_labels_method _loc l =
-  let labels = 
-    List.fold_right
-      (fun (_loc, _, _, label, _) accu -> 
-	<:expr< [ $str:label$ :: $accu$ ] >>)
-      l <:expr< [] >>
-  in
-  <:class_str_item<method labels = $labels$;>>
+  <:class_str_item<method labels = labels;>>
 
 let table_object_methods _loc l =
   let init = <:class_str_item<
@@ -373,6 +376,7 @@ module $uid:String.capitalize name$ = struct
     class type table = object
         $table_class_type_methods _loc l$
     end;
+    $labels_item _loc l$;
     $row_of_array _loc l$;
     $list_of_row _loc l$;
     $array_of_row _loc l$;
