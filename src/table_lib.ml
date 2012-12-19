@@ -149,17 +149,19 @@ let output_list sep oc = function
     output_string oc h ;
     List.iter (fun x -> output_string oc sep ; output_string oc x) t
 
-let output ~header ~list_of_row oc table =
-  if header then (
-    output_list "\t" oc table#labels ;
-    output_char oc '\n'
-  ) ;
-  for i = 0 to table#length - 1 do
-    table#row i
-    |! list_of_row
-    |! output_list "\t" oc ;
-    output_char oc '\n'
-  done
+let output ?header ~list_of_row oc rows =
+  begin
+    match header with
+    | None -> ()
+    | Some labels -> 
+        output_list "\t" oc labels ;
+        output_char oc '\n'
+  end ;
+  Stream.iter 
+    (fun r ->
+      output_list "\t" oc (list_of_row r) ;
+      output_char oc '\n')
+    rows
 
 let replace ~char ~by x =
   let rec aux i =
@@ -198,7 +200,7 @@ let latex_output ~list_of_row oc table =
 
 module type TabularType = sig
   type row
-  type table = private < labels : string list; length : int; row : int -> row; .. >
+  type table = private < labels : string list; length : int; row : int -> row; stream : row Stream.t ; .. >
   val list_of_row : row -> string list
   val row_of_array : string array -> row
   val table_of_stream : row Stream.t -> table
@@ -215,7 +217,10 @@ module Impl(X : TabularType) = struct
       ?(header = true) 
       ?(sep = '\t') 
       oc table =
-    output ~header ~list_of_row oc table
+    output 
+      ?header:(if header then Some table#labels else None)
+      ~list_of_row 
+      oc table#stream
 
   let table_to_file ?line_numbers ?header ?sep table path =
     let oc = open_out path in
@@ -236,9 +241,13 @@ module Impl(X : TabularType) = struct
   let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:(fun x -> x) ic
 
-  let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
-    assert false
+  let stream_to_channel ?(line_numbers = false) ?(sep = '\t') oc rows = 
+    output ~list_of_row oc rows
 end
+
+
+
+
 
 
 
