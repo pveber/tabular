@@ -6,7 +6,8 @@ module type S = sig
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
-    table -> out_channel -> unit
+    out_channel ->
+    table -> unit
   val table_to_file : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -14,7 +15,7 @@ module type S = sig
     table -> string -> unit
   val latex_table_to_channel : 
     ?line_numbers:bool ->
-    table -> out_channel -> unit
+    out_channel -> table -> unit
   val table_of_channel : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -36,8 +37,9 @@ module type S = sig
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
+    out_channel -> 
     row Stream.t ->     
-    out_channel -> unit
+    unit
 end
 
 let ( !! ) x = [| x |]

@@ -35,9 +35,9 @@ let bed =
 
 let filtered_table = Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 let () = 
-  Bed.table_to_channel filtered_table stdout ;
+  Bed.table_to_channel stdout filtered_table ;
   print_newline () ;
-  Bed.latex_table_to_channel filtered_table stdout ;
+  Bed.latex_table_to_channel stdout filtered_table ;
   print_newline ()
 
 

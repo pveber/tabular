@@ -149,7 +149,7 @@ let output_list sep oc = function
     output_string oc h ;
     List.iter (fun x -> output_string oc sep ; output_string oc x) t
 
-let output ~header ~list_of_row table oc =
+let output ~header ~list_of_row oc table =
   if header then (
     output_list "\t" oc table#labels ;
     output_char oc '\n'
@@ -175,7 +175,7 @@ let replace ~char ~by x =
   
 let latex_escape = replace ~char:'_' ~by:"\\_"
 
-let latex_output ~list_of_row table oc =
+let latex_output ~list_of_row oc table =
   fprintf oc
     "\\begin{tabular}{%s}\n" 
     (List.map (fun _ -> "c") table#labels |! String.concat "") ;
@@ -214,16 +214,16 @@ module Impl(X : TabularType) = struct
       ?(line_numbers = false) 
       ?(header = true) 
       ?(sep = '\t') 
-      table oc =
-    output ~header ~list_of_row table oc
+      oc table =
+    output ~header ~list_of_row oc table
 
   let table_to_file ?line_numbers ?header ?sep table path =
     let oc = open_out path in
-    table_to_channel ?line_numbers ?header ?sep table oc ;
+    table_to_channel ?line_numbers ?header ?sep oc table ;
     close_out oc
 
-  let latex_table_to_channel ?(line_numbers = false) table oc = 
-    latex_output ~list_of_row table oc
+  let latex_table_to_channel ?(line_numbers = false) oc table = 
+    latex_output ~list_of_row oc table
 
   let table_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
     input ~header ~row_of_array ~of_stream:table_of_stream ic

@@ -45,7 +45,7 @@ module Impl(X : TabularType) : sig
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
-    X.table -> out_channel -> unit
+    out_channel -> X.table -> unit
   val table_to_file : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -53,7 +53,7 @@ module Impl(X : TabularType) : sig
     X.table -> string -> unit
   val latex_table_to_channel : 
     ?line_numbers:bool ->
-    X.table -> out_channel -> unit
+    out_channel -> X.table -> unit
   val table_of_channel : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -75,7 +75,7 @@ module Impl(X : TabularType) : sig
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
+    out_channel -> 
     X.row Stream.t ->     
-    out_channel -> unit
-
+    unit
 end
