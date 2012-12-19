@@ -219,7 +219,7 @@ let row_of_array _loc l =
 	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
       l <:rec_binding<>>
   in
-  <:str_item<value row_of_array a = { $fields$ };>>
+  <:str_item<value row_of_array a = try { $fields$ } with [ _ -> Table_lib.row_conversion_fail labels (Array.to_list a) ];>>
 
 let array_of_row _loc l =
   let elts = 

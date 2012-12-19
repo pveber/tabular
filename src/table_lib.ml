@@ -137,6 +137,11 @@ module Stream = struct
 
 end
 
+let row_conversion_fail expected got =
+  let to_string l = Printf.sprintf "[ %s ]" (String.concat " ; " l) in
+  let msg = Printf.sprintf "Couln't parse a row. Expected:\n%s\nbut got:\n%s\n" (to_string expected) (to_string got) in
+  failwith msg
+
 let input ~header ~row_of_array ~of_stream ic =
   Stream.lines_of ic
   |! Stream.map ~f:(String.split ~sep:'\t')

@@ -3,6 +3,7 @@ val ( |! ) : 'a -> ('a -> 'b) -> 'b
 
 val int_of_string : exn -> string -> int
 val float_of_string : exn -> string -> float
+val row_conversion_fail : string list -> string list -> 'a
 
 module Option : sig
   type 'a t = 'a option
