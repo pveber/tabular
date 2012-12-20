@@ -125,8 +125,8 @@ let convert_col_type _loc (typ, opt) =
 
     | `Bool ->
       (<:ctyp< bool >>,
-       <:expr< bool_of_string >>,
-       <:expr< string_of_bool >>,
+       <:expr< Table_lib.bool_of_string >>,
+       <:expr< Table_lib.string_of_bool >>,
        Some "bool",
        <:expr< Pervasives.compare >>)
 
@@ -142,15 +142,15 @@ let convert_col_type _loc (typ, opt) =
 
     | `Int ->
       (<:ctyp< int >>,
-       <:expr< int_of_string >>,
-       <:expr< string_of_int >>,
+       <:expr< Table_lib.int_of_string >>,
+       <:expr< Table_lib.string_of_int >>,
        Some "int",
        <:expr< Pervasives.compare >>)
 
     | `Float ->
       (<:ctyp< float >>,
-       <:expr< float_of_string >>,
-       <:expr< string_of_float >>,
+       <:expr< Table_lib.float_of_string >>,
+       <:expr< Table_lib.string_of_float >>,
        Some "float",
        <:expr< Pervasives.compare >>)
 
@@ -219,7 +219,7 @@ let row_of_array _loc l =
 	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
       l <:rec_binding<>>
   in
-  <:str_item<value row_of_array a = try { $fields$ } with [ _ -> Table_lib.row_conversion_fail labels (Array.to_list a) ];>>
+  <:str_item<value row_of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Table_lib.row_conversion_fail labels (Array.to_list a);>>
 
 let array_of_row _loc l =
   let elts = 
@@ -377,6 +377,7 @@ module $uid:String.capitalize name$ = struct
         $table_class_type_methods _loc l$
     end;
     $labels_item _loc l$;
+    value labels_array = Array.of_list labels;
     $row_of_array _loc l$;
     $list_of_row _loc l$;
     $array_of_row _loc l$;

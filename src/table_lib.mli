@@ -1,8 +1,12 @@
 val id : 'a -> 'a
 val ( |! ) : 'a -> ('a -> 'b) -> 'b
 
-val int_of_string : exn -> string -> int
-val float_of_string : exn -> string -> float
+val int_of_string : (* field:string ->*) string -> int
+val float_of_string : (*field:string ->*) string -> float
+val bool_of_string : (*field:string ->*) string -> bool
+val string_of_int : int -> string
+val string_of_bool : bool -> string
+val string_of_float : float -> string
 val row_conversion_fail : string list -> string list -> 'a
 
 module Option : sig
@@ -43,6 +47,7 @@ end
 module Impl(X : TabularType) : sig
 
   type s = < row : X.row ; table :X.table >
+  val row_of_array : string array -> X.row
   val table_to_channel : 
     ?line_numbers:bool ->
     ?header:bool ->

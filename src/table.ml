@@ -2,6 +2,7 @@ module type S = sig
   type row
   type table
   type s = < row : row ; table :table >
+  val row_of_array : string array -> row
   val table_to_channel : 
     ?line_numbers:bool ->
     ?header:bool ->

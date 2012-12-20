@@ -3,17 +3,33 @@ open Printf
 let id = fun x -> x
 let ( |! ) x f = f x
 
-let bool_of_string e s =
+let bool_of_string (*~field*) s =
+  let field = "" in
   try bool_of_string s
-  with _ -> raise e
+  with _ -> (
+    let msg = sprintf "Failed while parsing field %s of type bool: %S" field s in
+    failwith msg
+  )
 
-let int_of_string e s =
+let int_of_string (* ~field *) s =
+  let field = "" in
   try int_of_string s
-  with _ -> raise e
+  with _ -> (
+    let msg = sprintf "Failed while parsing field %s of type int: %S" field s in
+    failwith msg
+  )
 
-let float_of_string e s =
+let float_of_string (* ~field *) s =
+  let field = "" in
   try float_of_string s
-  with _ -> raise e
+  with _ -> (
+    let msg = sprintf "Failed while parsing field %s of type float: %S" field s in
+    failwith msg
+  )
+
+let string_of_float = string_of_float
+let string_of_int = string_of_int
+let string_of_bool = string_of_bool
 
 let option_of_string f s =
   if s = "" then None
@@ -138,7 +154,7 @@ module Stream = struct
 end
 
 let row_conversion_fail expected got =
-  let to_string l = Printf.sprintf "[ %s ]" (String.concat " ; " l) in
+  let to_string l = Printf.sprintf "[ %s ]" (String.concat " ; " (List.map (sprintf "%S") l)) in
   let msg = Printf.sprintf "Couln't parse a row. Expected:\n%s\nbut got:\n%s\n" (to_string expected) (to_string got) in
   failwith msg
 
