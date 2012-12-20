@@ -45,21 +45,21 @@ end
 
 let ( !! ) x = [| x |]
 
-let rec pgcd a b =
+let rec gcd a b =
   if a = b then a
   else if a > b then
     let r = a mod b in
     if r = 0 then b
-    else pgcd b r
-  else pgcd b a
+    else gcd b r
+  else gcd b a
 
-let ppcm a b = a * b / (pgcd a b)
+let lcm a b = a * b / (gcd a b)
 
 let map2 f u v =
   let m = Array.length u
   and n = Array.length v in
   Array.init
-    (ppcm m n)
+    (lcm m n)
     (fun k -> 
       let i = k mod m
       and j = k mod n in
