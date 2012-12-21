@@ -9,7 +9,7 @@ Plugins:     META (0.3), DevFiles (0.3)
 Library table
   Path:			src
   BuildTools: 		ocamlbuild
-  Modules:    		Table, Table_lib
+  Modules:    		Table, Table_lib, Table_sig
   FindlibName:        	table
   
 Library table_syntax

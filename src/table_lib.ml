@@ -198,110 +198,66 @@ let replace ~char ~by x =
   
 let latex_escape = replace ~char:'_' ~by:"\\_"
 
-let latex_output ~header ~list_of_row oc table =
+let latex_output ~header ~list_of_row oc xs =
   fprintf oc
     "\\begin{tabular}{%s}\n" 
     (List.map (fun _ -> "c") header |! String.concat "") ;
 
   output_list 
     " & " oc 
-    (List.map (fun l -> sprintf "{ \\bf %s }" (latex_escape l)) table#labels) ;
+    (List.map (fun l -> sprintf "{ \\bf %s }" (latex_escape l)) header) ;
   output_string oc "\\\\\n\\hline\n" ;
   
-  for i = 0 to table#length - 1 do
-    table#row i
-    |! list_of_row
-    |! List.map latex_escape
-    |! output_list " & " oc ;
-    output_string oc "\\\\\n"
-  done ;
+  Stream.iter
+    (fun r ->
+      list_of_row r
+      |! List.map latex_escape
+      |! output_list " & " oc ;
+      output_string oc "\\\\\n")
+    xs ;
 
   output_string oc "\\end{tabular}"
 
+open Table_sig
 
-module type TabularType = sig
-  type row
-  type table = private < labels : string list; length : int; row : int -> row; stream : row Stream.t ; .. >
-  val labels : string list
-  val list_of_row : row -> string list
-  val row_of_array : string array -> row
-  val table_of_stream : row Stream.t -> table
-end
+module Impl(G : Gen) = struct
+  module Row = struct
+    include G.Row
+    let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic =
+      input ~header ~row_of_array:of_array ~of_stream:(fun x -> x) ic
 
-module Impl(X : TabularType) = struct
-  module type S = sig
-    val row_of_array : string array -> X.row
-    val table_to_channel : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      out_channel -> X.table -> unit
-    val table_to_file : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      X.table -> string -> unit
-    val latex_table_to_channel : 
-      ?line_numbers:bool ->
-      out_channel -> X.table -> unit
-    val table_of_channel : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      in_channel -> X.table
-    val table_of_file : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      string -> X.table
-    val table_of_stream :
-      X.row Stream.t -> X.table
-    val stream_of_channel : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      in_channel -> X.row Stream.t
-    val stream_to_channel : 
-      ?line_numbers:bool ->
-      ?header:bool ->
-      ?sep:char ->
-      out_channel -> 
-      X.row Stream.t ->     
-      unit
+    let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') oc rows =
+      output ?header:(if header then Some labels else None) ~list_of_row:to_list oc rows
   end
 
-  include X
+  module Table = struct
+    include G.Table
+    let string_of_row r = String.concat "\t" (Row.to_list r)
 
-  let string_of_row r = String.concat "\t" (X.list_of_row r)
+    let to_channel
+        ?(line_numbers = false)
+        ?(header = true)
+        ?(sep = '\t')
+        oc table =
+      output ?header:(if header then Some Row.labels else None) ~list_of_row:Row.to_list oc (stream table)
 
-  let table_to_channel
-      ?(line_numbers = false) 
-      ?(header = true) 
-      ?(sep = '\t') 
-      oc table =
-    output ?header:(if header then Some X.labels else None) ~list_of_row oc table#stream
+    let to_file ?line_numbers ?header ?sep table path =
+      let oc = open_out path in
+      to_channel ?line_numbers ?header ?sep oc table ;
+      close_out oc
 
-  let table_to_file ?line_numbers ?header ?sep table path =
-    let oc = open_out path in
-    table_to_channel ?line_numbers ?header ?sep oc table ;
-    close_out oc
+    let latex_to_channel ?(line_numbers = false) oc table =
+      latex_output ~header:Row.labels ~list_of_row:Row.to_list oc (stream table)
 
-  let latex_table_to_channel ?(line_numbers = false) oc table = 
-    latex_output ~header:X.labels ~list_of_row oc table
+    let of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic =
+      input ~header ~row_of_array:Row.of_array ~of_stream:of_stream ic
 
-  let table_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
-    input ~header ~row_of_array ~of_stream:table_of_stream ic
+    let of_file ?line_numbers ?header ?sep path =
+      let ic = open_in path in
+      let r = of_channel ?line_numbers ?header ?sep ic in
+      close_in ic ; r
+  end
 
-  let table_of_file ?line_numbers ?header ?sep path =
-    let ic = open_in path in
-    let r = table_of_channel ?line_numbers ?header ?sep ic in
-    close_in ic ; r
-
-  let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic = 
-    input ~header ~row_of_array ~of_stream:(fun x -> x) ic
-
-  let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') oc rows = 
-    output ?header:(if header then Some X.labels else None) ~list_of_row oc rows
 end
 
 

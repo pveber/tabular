@@ -4,7 +4,7 @@ module String = struct
   let to_string x = x
 end
 
-module X : sig
+module Bed : sig
   type table bed = {
     chr        : String ;
     st "chrom_start" : int ;
@@ -21,10 +21,8 @@ struct
   }
 end
 
-open X
-
 let bed = 
-  Bed.table_of_stream (
+  Bed.Table.of_stream (
     Stream.of_list [
       { Bed.chr = "chr1" ; st = 1 ; ed = 3 ; strand = `Sense } ;
       { Bed.chr = "chr1" ; st = 3 ; ed = 5 ; strand = `Sense } ;
@@ -35,9 +33,9 @@ let bed =
 
 let filtered_table = Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 let () = 
-  Bed.table_to_channel stdout filtered_table ;
+  Bed.Table.to_channel stdout filtered_table ;
   print_newline () ;
-  Bed.latex_table_to_channel stdout filtered_table ;
+  Bed.Table.latex_to_channel stdout filtered_table ;
   print_newline ()
 
 

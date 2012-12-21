@@ -219,7 +219,7 @@ let row_of_array _loc l =
 	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
       l <:rec_binding<>>
   in
-  <:str_item<value row_of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Table_lib.row_conversion_fail labels (Array.to_list a);>>
+  <:str_item<value of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Table_lib.row_conversion_fail labels (Array.to_list a);>>
 
 let array_of_row _loc l =
   let elts = 
@@ -237,7 +237,7 @@ let list_of_row _loc l =
 	<:expr< [ ($typ#to_string$ row.$lid:name$) :: $accu$ ] >>)
       l <:expr< [] >>
   in
-  <:str_item<value list_of_row row = $elts$;>>
+  <:str_item<value to_list row = $elts$;>>
 
 
 let table_class_type_methods _loc l =
@@ -297,7 +297,7 @@ let table_object_length_method _loc = function
       <:class_str_item<method length = Array.length $lid:name$;>>
 
 let table_object_labels_method _loc l =
-  <:class_str_item<method labels = labels;>>
+  <:class_str_item<method labels = Row.labels;>>
 
 let table_object_methods _loc l =
   let init = <:class_str_item<
@@ -358,35 +358,72 @@ let table_of_stream_body _loc l =
 
 let expand_table_sig _loc name l =
   <:sig_item<
-module $uid:String.capitalize name$ : sig
-  type row = { $row_record_fields _loc l$ };
-  class type table = object
-      $table_class_type_methods _loc l$
+type row = { $row_record_fields _loc l$ };
+class type table = object
+    $table_class_type_methods _loc l$
+end;
+module T : sig
+  module Row : sig
+    type t = row;
+    value labels : list string;
+    value of_array : array string -> t;
+    value to_list : t -> list string;
   end;
-  module T : Table_lib.TabularType with type row = row and type table = table;
-  include (Table_lib.Impl T).S;
-end
-  >>
+
+  module Table : sig
+    type t = table;
+    value of_stream : Stream.t row -> t;
+    value stream : t -> Stream.t row;
+  end;
+end;
+
+include module type of Table_lib.Impl(T) with type Row.t = row 
+                                           and type Table.t = table;
+
+>>
 
 let expand_table_str _loc name l =
   <:str_item<
-module $uid:String.capitalize name$ = struct
-  module T = struct
-    type row = { $row_record_fields _loc l$ };
-    class type table = object
-        $table_class_type_methods _loc l$
-    end;
+type row = { $row_record_fields _loc l$ };
+class type table = object
+    $table_class_type_methods _loc l$
+end;
+module T = struct
+  module Row = struct
+    type t = row;
     $labels_item _loc l$;
     value labels_array = Array.of_list labels;
     $row_of_array _loc l$;
     $list_of_row _loc l$;
-    $array_of_row _loc l$;
-    $table_make_str_item _loc l$;
-    value table_of_stream xs = $table_of_stream_body _loc l$;
   end;
-  include T;
-  include Table_lib.Impl(T);
-end
+
+  module Table = struct
+    type t = table;
+    $table_make_str_item _loc l$;
+    value stream t = t # stream;
+    value of_stream xs = $table_of_stream_body _loc l$;
+  end;
+end;
+
+include Table_lib.Impl(T);
+
+(* module $uid:String.capitalize name$ = struct *)
+(*   module T = struct *)
+(*     type row = { $row_record_fields _loc l$ }; *)
+(*     class type table = object *)
+(*         $table_class_type_methods _loc l$ *)
+(*     end; *)
+(*     $labels_item _loc l$; *)
+(*     value labels_array = Array.of_list labels; *)
+(*     $row_of_array _loc l$; *)
+(*     $list_of_row _loc l$; *)
+(*     $array_of_row _loc l$; *)
+(*     $table_make_str_item _loc l$; *)
+(*     value table_of_stream xs = $table_of_stream_body _loc l$; *)
+(*   end; *)
+(*   include T; *)
+(*   include Table_lib.Impl(T); *)
+(* end *)
 >>
 
 
