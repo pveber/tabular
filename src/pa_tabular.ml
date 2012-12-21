@@ -356,7 +356,7 @@ let table_of_stream_body _loc l =
     $fun_call$
   >>
 
-let expand_table_sig _loc name l =
+let expand_table_sig _loc l =
   <:sig_item<
 type row = { $row_record_fields _loc l$ };
 class type table = object
@@ -382,7 +382,7 @@ include module type of Tabular.Lib.Impl(T) with type Row.t = row
 
 >>
 
-let expand_table_str _loc name l =
+let expand_table_str _loc l =
   <:str_item<
 type row = { $row_record_fields _loc l$ };
 class type table = object
@@ -406,24 +406,6 @@ module T = struct
 end;
 
 include Tabular.Lib.Impl(T);
-
-(* module $uid:String.capitalize name$ = struct *)
-(*   module T = struct *)
-(*     type row = { $row_record_fields _loc l$ }; *)
-(*     class type table = object *)
-(*         $table_class_type_methods _loc l$ *)
-(*     end; *)
-(*     $labels_item _loc l$; *)
-(*     value labels_array = Array.of_list labels; *)
-(*     $row_of_array _loc l$; *)
-(*     $list_of_row _loc l$; *)
-(*     $array_of_row _loc l$; *)
-(*     $table_make_str_item _loc l$; *)
-(*     value table_of_stream xs = $table_of_stream_body _loc l$; *)
-(*   end; *)
-(*   include T; *)
-(*   include Tabular.Lib.Impl(T); *)
-(* end *)
 >>
 
 
@@ -431,13 +413,13 @@ EXTEND Gram
   GLOBAL: sig_item str_item;
 
   sig_item: LEVEL "top" [
-    [ "type" ; LIDENT "table"; name = LIDENT; "="; 
-      "{"; l = col_list; "}" -> expand_table_sig _loc name (add_index l)]
+    [ "type" ; LIDENT "tabular"; "_"; "="; 
+      "{"; l = col_list; "}" -> expand_table_sig _loc (add_index l)]
   ];
 
   str_item: LEVEL "top" [
-    [ "type" ; LIDENT "table"; name = LIDENT; "="; 
-      "{"; l = col_list; "}" -> expand_table_str _loc name (add_index l)]
+    [ "type" ; LIDENT "tabular"; "_"; "="; 
+      "{"; l = col_list; "}" -> expand_table_str _loc (add_index l)]
   ];
 
   (* variants: [ *)

@@ -5,7 +5,7 @@ module String = struct
 end
 
 module Bed : sig
-  type table bed = {
+  type tabular _ = {
     chr        : String ;
     st "chrom_start" : int ;
     ed "chrom_end"   : int ;
@@ -13,7 +13,7 @@ module Bed : sig
   }
 end =
 struct
-  type table bed = {
+  type tabular _ = {
     chr        : String ;
     st "chrom_start" : int ;
     ed "chrom_end"   : int ;
