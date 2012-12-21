@@ -356,9 +356,10 @@ let table_of_stream_body _loc l =
     $fun_call$
   >>
 
-let expand_table_sig _loc l =
+let expand_table_sig _loc name l =
   <:sig_item<
-type row = { $row_record_fields _loc l$ };
+type $lid:name$ = { $row_record_fields _loc l$ };
+type row = t;
 class type table = object
     $table_class_type_methods _loc l$
 end;
@@ -382,9 +383,10 @@ include module type of Tabular.Lib.Impl(T) with type Row.t = row
 
 >>
 
-let expand_table_str _loc l =
+let expand_table_str _loc name l =
   <:str_item<
-type row = { $row_record_fields _loc l$ };
+type $lid:name$ = { $row_record_fields _loc l$ };
+type row = t;
 class type table = object
     $table_class_type_methods _loc l$
 end;
@@ -413,13 +415,13 @@ EXTEND Gram
   GLOBAL: sig_item str_item;
 
   sig_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; LIDENT "data"; "="; 
-      "{"; l = col_list; "}" -> expand_table_sig _loc (add_index l)]
+    [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
+      "{"; l = col_list; "}" -> expand_table_sig _loc name (add_index l)]
   ];
 
   str_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; LIDENT "data"; "="; 
-      "{"; l = col_list; "}" -> expand_table_str _loc (add_index l)]
+    [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
+      "{"; l = col_list; "}" -> expand_table_str _loc name (add_index l)]
   ];
 
   (* variants: [ *)

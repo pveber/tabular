@@ -9,8 +9,7 @@ Plugins:     META (0.3), DevFiles (0.3)
 Library tabular
   Path:			src
   BuildTools: 		ocamlbuild
-  Modules:    		Tabular
-  InternalModules:      Tabular_lib, Tabular_sig
+  Modules:    		Tabular, Tabular_lib, Tabular_sig
   FindlibName:        	tabular
   
 Library tabular_syntax
