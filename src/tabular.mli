@@ -30,6 +30,25 @@ val not : bool array -> bool array
 
 val count : bool array -> int
 
+module Lib : sig
+  include module type of Tabular_lib
+end
+
+module Sig : sig
+  include module type of Tabular_sig
+end
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

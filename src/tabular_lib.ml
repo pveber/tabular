@@ -218,7 +218,7 @@ let latex_output ~header ~list_of_row oc xs =
 
   output_string oc "\\end{tabular}"
 
-open Table_sig
+open Tabular_sig
 
 module Impl(G : Gen) = struct
   module Row = struct

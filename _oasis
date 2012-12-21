@@ -6,27 +6,28 @@ Authors:     Philippe Veber
 License:     GPL-3.0
 Plugins:     META (0.3), DevFiles (0.3)
 
-Library table
+Library tabular
   Path:			src
   BuildTools: 		ocamlbuild
-  Modules:    		Table, Table_lib, Table_sig
-  FindlibName:        	table
+  Modules:    		Tabular
+  InternalModules:      Tabular_lib, Tabular_sig
+  FindlibName:        	tabular
   
-Library table_syntax
+Library tabular_syntax
   Path:			src
   BuildTools: 		ocamlbuild
-  BuildDepends:		camlp4, camlp4.lib, camlp4.quotations.r, camlp4.extend, table
-  Modules:    		Pa_table
-  FindlibParent:      	table
+  BuildDepends:		camlp4, camlp4.lib, camlp4.quotations.r, camlp4.extend, tabular
+  Modules:    		Pa_tabular
+  FindlibParent:      	tabular
   FindlibName:        	syntax
   XMETAType:          	syntax
-  XMETARequires:      	camlp4, table
-  XMETADescription:   	Syntax extension for table
+  XMETARequires:      	camlp4, tabular
+  XMETADescription:   	Syntax extension for tabular
   CompiledObject:     	byte
 
 Executable example
   Path:			src
   BuildTools:		ocamlbuild
   MainIs:		example.ml
-  BuildDepends:		table, table.syntax
+  BuildDepends:		tabular, tabular.syntax
   Install: 		false

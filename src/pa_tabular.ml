@@ -1,7 +1,7 @@
 open Printf
 open Camlp4.PreCast
 open Syntax
-open Table_lib
+open Tabular_lib
 
 exception Bad_format
 
@@ -118,15 +118,15 @@ let convert_col_type _loc (typ, opt) =
   let conv = match typ with
     | `String ->
       (<:ctyp< string >>,
-       <:expr< Table_lib.id >>,
-       <:expr< Table_lib.id >>,
+       <:expr< Tabular.Lib.id >>,
+       <:expr< Tabular.Lib.id >>,
        Some "string",
        <:expr< String.compare >>)
 
     | `Bool ->
       (<:ctyp< bool >>,
-       <:expr< Table_lib.bool_of_string >>,
-       <:expr< Table_lib.string_of_bool >>,
+       <:expr< Tabular.Lib.bool_of_string >>,
+       <:expr< Tabular.Lib.string_of_bool >>,
        Some "bool",
        <:expr< Pervasives.compare >>)
 
@@ -142,15 +142,15 @@ let convert_col_type _loc (typ, opt) =
 
     | `Int ->
       (<:ctyp< int >>,
-       <:expr< Table_lib.int_of_string >>,
-       <:expr< Table_lib.string_of_int >>,
+       <:expr< Tabular.Lib.int_of_string >>,
+       <:expr< Tabular.Lib.string_of_int >>,
        Some "int",
        <:expr< Pervasives.compare >>)
 
     | `Float ->
       (<:ctyp< float >>,
-       <:expr< Table_lib.float_of_string >>,
-       <:expr< Table_lib.string_of_float >>,
+       <:expr< Tabular.Lib.float_of_string >>,
+       <:expr< Tabular.Lib.string_of_float >>,
        Some "float",
        <:expr< Pervasives.compare >>)
 
@@ -170,7 +170,7 @@ let convert_col_type _loc (typ, opt) =
   in
 
   let compare_opt cmp =
-    <:expr< Table_lib.compare_opt $cmp$ >> 
+    <:expr< Tabular.Lib.compare_opt $cmp$ >> 
   in
 
   let t, of_s, to_s, s, cmp =
@@ -178,8 +178,8 @@ let convert_col_type _loc (typ, opt) =
     else
       let (t, of_s, to_s, s, cmp) = conv in
       (<:ctyp< option $t$ >>,
-	 <:expr< Table_lib.Option.of_string $of_s$ >>,
-	 <:expr< Table_lib.Option.map ~f:$to_s$ >>,
+	 <:expr< Tabular.Lib.Option.of_string $of_s$ >>,
+	 <:expr< Tabular.Lib.Option.map ~f:$to_s$ >>,
 	 add_suffix s,
 	 compare_opt cmp)
 
@@ -219,7 +219,7 @@ let row_of_array _loc l =
 	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
       l <:rec_binding<>>
   in
-  <:str_item<value of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Table_lib.row_conversion_fail labels (Array.to_list a);>>
+  <:str_item<value of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Tabular.Lib.row_conversion_fail labels (Array.to_list a);>>
 
 let array_of_row _loc l =
   let elts = 
@@ -279,7 +279,7 @@ let table_object_sub_method _loc = function
     let make_call =
       List.fold_left
 	(fun accu (_loc, _, name, _, _) ->
-	  <:expr< $accu$ ~ $lid:name$ : (Table_lib.Array.sub $lid:name$ b) >>)
+	  <:expr< $accu$ ~ $lid:name$ : (Tabular.Lib.Array.sub $lid:name$ b) >>)
 	<:expr< make >> l
     in
     let body =
@@ -306,7 +306,7 @@ $table_object_sub_method _loc l$;
 $table_object_length_method _loc l$;
 $table_object_labels_method _loc l$;
 method iter f = for i = 0 to self#length - 1 do f (self#row i) done;
-method stream = Table_lib.Stream.init self#length self#row
+method stream = Tabular.Lib.Stream.init self#length self#row
   >>
   in
   List.fold_right
@@ -352,7 +352,7 @@ let table_of_stream_body _loc l =
       l <:expr<make>>
   in
   <:expr<
-    let rows = Table_lib.Stream.to_array xs in
+    let rows = Tabular.Lib.Stream.to_array xs in
     $fun_call$
   >>
 
@@ -377,7 +377,7 @@ module T : sig
   end;
 end;
 
-include module type of Table_lib.Impl(T) with type Row.t = row 
+include module type of Tabular.Lib.Impl(T) with type Row.t = row 
                                            and type Table.t = table;
 
 >>
@@ -405,7 +405,7 @@ module T = struct
   end;
 end;
 
-include Table_lib.Impl(T);
+include Tabular.Lib.Impl(T);
 
 (* module $uid:String.capitalize name$ = struct *)
 (*   module T = struct *)
@@ -422,7 +422,7 @@ include Table_lib.Impl(T);
 (*     value table_of_stream xs = $table_of_stream_body _loc l$; *)
 (*   end; *)
 (*   include T; *)
-(*   include Table_lib.Impl(T); *)
+(*   include Tabular.Lib.Impl(T); *)
 (* end *)
 >>
 

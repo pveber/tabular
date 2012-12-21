@@ -31,7 +31,7 @@ let bed =
     ]
   )
 
-let filtered_table = Table.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
+let filtered_table = Tabular.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
 let () = 
   Bed.Table.to_channel stdout filtered_table ;
   print_newline () ;

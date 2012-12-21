@@ -41,21 +41,10 @@ let not = Array.map not
 let count x = Array.fold_left Pervasives.(fun accu b -> if b then accu + 1 else accu) 0 x
 
 
+module Lib = struct
+  include Tabular_lib
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+module Sig = struct
+  include Tabular_sig
+end

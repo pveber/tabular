@@ -35,7 +35,7 @@ module Stream : sig
   val init : int -> f:(int -> 'a) -> 'a t
 end
 
-module Impl : Table_sig.Impl
+module Impl : Tabular_sig.Impl
 
 
 
