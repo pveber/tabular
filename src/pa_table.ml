@@ -363,8 +363,8 @@ module $uid:String.capitalize name$ : sig
   class type table = object
       $table_class_type_methods _loc l$
   end;
-  include Table.S with type row := row
-                  and type table := table;
+  module T : Table_lib.TabularType with type row = row and type table = table;
+  include (Table_lib.Impl T).S;
 end
   >>
 

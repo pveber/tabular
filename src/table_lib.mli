@@ -45,44 +45,55 @@ module type TabularType = sig
 end
 
 module Impl(X : TabularType) : sig
-
-  type s = < row : X.row ; table :X.table >
-  val row_of_array : string array -> X.row
-  val table_to_channel : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    out_channel -> X.table -> unit
-  val table_to_file : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    X.table -> string -> unit
-  val latex_table_to_channel : 
-    ?line_numbers:bool ->
-    out_channel -> X.table -> unit
-  val table_of_channel : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    in_channel -> X.table
-  val table_of_file : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    string -> X.table
-  val table_of_stream :
-    X.row Stream.t -> X.table
-  val stream_of_channel : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    in_channel -> X.row Stream.t
-  val stream_to_channel : 
-    ?line_numbers:bool ->
-    ?header:bool ->
-    ?sep:char ->
-    out_channel -> 
-    X.row Stream.t ->     
-    unit
+  module type S = sig
+    val row_of_array : string array -> X.row
+    val table_to_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      out_channel -> X.table -> unit
+    val table_to_file : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      X.table -> string -> unit
+    val latex_table_to_channel : 
+      ?line_numbers:bool ->
+      out_channel -> X.table -> unit
+    val table_of_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      in_channel -> X.table
+    val table_of_file : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      string -> X.table
+    val table_of_stream :
+      X.row Stream.t -> X.table
+    val stream_of_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      in_channel -> X.row Stream.t
+    val stream_to_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      out_channel -> 
+      X.row Stream.t ->     
+      unit
+  end
+  include S
 end
+
+
+
+
+
+
+
+
+
+
