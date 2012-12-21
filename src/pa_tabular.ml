@@ -413,12 +413,12 @@ EXTEND Gram
   GLOBAL: sig_item str_item;
 
   sig_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; "_"; "="; 
+    [ "type" ; LIDENT "tabular"; LIDENT "data"; "="; 
       "{"; l = col_list; "}" -> expand_table_sig _loc (add_index l)]
   ];
 
   str_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; "_"; "="; 
+    [ "type" ; LIDENT "tabular"; LIDENT "data"; "="; 
       "{"; l = col_list; "}" -> expand_table_str _loc (add_index l)]
   ];
 
