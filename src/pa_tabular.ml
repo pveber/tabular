@@ -359,7 +359,7 @@ let table_of_stream_body _loc l =
 let expand_table_sig _loc name l =
   <:sig_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
-type row = t;
+type row = $lid:name$;
 class type table = object
     $table_class_type_methods _loc l$
 end;
@@ -386,7 +386,7 @@ include module type of Tabular.Lib.Impl(T) with type Row.t = row
 let expand_table_str _loc name l =
   <:str_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
-type row = t;
+type row = $lid:name$;
 class type table = object
     $table_class_type_methods _loc l$
 end;
