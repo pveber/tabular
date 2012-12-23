@@ -239,6 +239,43 @@ let list_of_row _loc l =
   in
   <:str_item<value to_list row = $elts$;>>
 
+(*
+ **************************************
+ * OBJECT DEFINITION AND CONSTRUCTION *
+ **************************************
+ *)
+let obj_class_type_methods _loc l =
+  List.fold_right
+    (fun (_loc, _, name, _, typ) accu ->
+      <:class_sig_item<method $lid:name$ : $typ#t$; $accu$>>)
+    l <:class_sig_item< >>
+
+let obj_make_sig_item _loc l = <:sig_item< >>
+
+let obj_of_row _loc l =
+  let body =
+    List.fold_right
+      (fun (_loc, _, name, _, typ) accu ->
+        <:class_str_item<method $lid:name$ = r.$lid:name$; $accu$>>)
+      l <:class_str_item< >>
+  in
+  <:str_item< value of_row r = object $body$ end;>>
+
+let obj_to_row _loc l =
+  let body =
+    List.fold_right
+      (fun (_loc, _, name, _, typ) accu ->
+        <:rec_binding< $lid:name$ = o#$lid:name$; $accu$>>)
+      l <:rec_binding< >>
+  in
+  <:str_item< value to_row o = { $body$ };>>
+
+
+(*
+ *************************************
+ * TABLE DEFINITION AND CONSTRUCTION *
+ *************************************
+ *)
 
 let table_class_type_methods _loc l =
   let init = <:class_sig_item< 
@@ -356,34 +393,75 @@ let table_of_stream_body _loc l =
     $fun_call$
   >>
 
-let expand_table_sig _loc name l =
+let expand_tabular_sig _loc name l =
   <:sig_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
 type row = $lid:name$;
 class type table = object
     $table_class_type_methods _loc l$
 end;
-module T : sig
-  module Row : sig
-    type t = row;
-    value labels : list string;
-    value of_array : array string -> t;
-    value to_list : t -> list string;
-  end;
-
-  module Table : sig
-    type t = table;
-    value of_stream : Stream.t row -> t;
-    value stream : t -> Stream.t row;
-  end;
+module Row : sig
+  type t = row;
+  value labels : list string;
+  value of_array : array string -> t;
+  value to_list : t -> list string;
+  value stream_of_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      in_channel -> Stream.t t;
+  value stream_to_channel : 
+      ?line_numbers:bool ->
+      ?header:bool ->
+      ?sep:char ->
+      out_channel -> 
+      Stream.t t ->
+      unit;
 end;
 
-include module type of Tabular.Lib.Impl(T) with type Row.t = row 
-                                           and type Table.t = table;
+module Obj : sig
+  class type t = object
+      $obj_class_type_methods _loc l$;
+  end;
+  $obj_make_sig_item _loc l$;
+  value of_row : Row.t -> t;
+  value to_row : t -> Row.t;
+  (* value of_array : array string -> t; *)
+end;
+
+module Table : sig
+  type t = table;
+  (* $table_make_sig_item _loc l$; *)
+  value of_stream : Stream.t row -> t;
+  value stream : t -> Stream.t row;
+  value to_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    out_channel -> t -> unit;
+  value to_file : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    t -> string -> unit;
+  value latex_to_channel : 
+    ?line_numbers:bool ->
+    out_channel -> t -> unit;
+  value of_channel : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    in_channel -> t;
+  value of_file : 
+    ?line_numbers:bool ->
+    ?header:bool ->
+    ?sep:char ->
+    string -> t;
+end;
 
 >>
 
-let expand_table_str _loc name l =
+let expand_tabular_str _loc name l =
   <:str_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
 type row = $lid:name$;
@@ -408,6 +486,14 @@ module T = struct
 end;
 
 include Tabular.Lib.Impl(T);
+
+module Obj = struct
+  class type t = object
+      $obj_class_type_methods _loc l$;
+  end;
+  $obj_of_row _loc l$;
+  $obj_to_row _loc l$;
+end;
 >>
 
 
@@ -416,12 +502,12 @@ EXTEND Gram
 
   sig_item: LEVEL "top" [
     [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
-      "{"; l = col_list; "}" -> expand_table_sig _loc name (add_index l)]
+      "{"; l = col_list; "}" -> expand_tabular_sig _loc name (add_index l)]
   ];
 
   str_item: LEVEL "top" [
     [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
-      "{"; l = col_list; "}" -> expand_table_str _loc name (add_index l)]
+      "{"; l = col_list; "}" -> expand_tabular_str _loc name (add_index l)]
   ];
 
   (* variants: [ *)
