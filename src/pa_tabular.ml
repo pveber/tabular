@@ -393,9 +393,10 @@ let table_of_stream_body _loc l =
 
 let expand_tabular_sig _loc name l =
   <:sig_item<
-type $lid:name$ = { $row_record_fields _loc l$ };
+type tabular_t = { $row_record_fields _loc l$ };
+type $lid:name$ = tabular_t;
 module Row : sig
-  type t = $lid:name$;
+  type t = tabular_t;
   value labels : list string;
   value of_array : array string -> t;
   value to_list : t -> list string;
@@ -459,10 +460,11 @@ end;
 
 let expand_tabular_str _loc name l =
   <:str_item<
-type $lid:name$ = { $row_record_fields _loc l$ };
+type tabular_t = { $row_record_fields _loc l$ };
+type $lid:name$ = tabular_t;
 module Base = struct
   module Row = struct
-    type t = $lid:name$;
+    type t = tabular_t;
     $labels_item _loc l$;
     value labels_array = Array.of_list labels;
     $row_of_array _loc l$;
