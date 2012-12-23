@@ -15,45 +15,43 @@ end
 module type Impl = functor (G : Gen) ->
 sig 
   module Row : sig
-    include module type of G.Row with type t = G.Row.t
     val stream_of_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      in_channel -> t Stream.t
+      in_channel -> G.Row.t Stream.t
     val stream_to_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       out_channel -> 
-      t Stream.t ->     
+      G.Row.t Stream.t ->     
       unit
   end
   module Table : sig
-    include module type of G.Table with type t = G.Table.t
     val to_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      out_channel -> t -> unit
+      out_channel -> G.Table.t -> unit
     val to_file : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      t -> string -> unit
+      G.Table.t -> string -> unit
     val latex_to_channel : 
       ?line_numbers:bool ->
-      out_channel -> t -> unit
+      out_channel -> G.Table.t -> unit
     val of_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      in_channel -> t
+      in_channel -> G.Table.t
     val of_file : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      string -> t
+      string -> G.Table.t
   end
 end
 

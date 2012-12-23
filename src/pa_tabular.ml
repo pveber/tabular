@@ -277,14 +277,13 @@ let obj_to_row _loc l =
  *************************************
  *)
 
-let table_class_type_methods _loc l =
+let table_class_type_methods _loc l typename =
   let init = <:class_sig_item< 
-    method row : int -> row;
-    method sub : array bool -> table;
+    method row : int -> Row.t;
+    method sub : array bool -> $lid:typename$;
     method length : int;
     method labels : list string;
-    method iter : (row -> unit) -> unit;
-    method stream : Stream.t row;
+    method stream : Stream.t Row.t;
   >>
   in
   List.fold_right
@@ -342,7 +341,6 @@ $table_object_row_method _loc l$;
 $table_object_sub_method _loc l$;
 $table_object_length_method _loc l$;
 $table_object_labels_method _loc l$;
-method iter f = for i = 0 to self#length - 1 do f (self#row i) done;
 method stream = Tabular.Lib.Stream.init self#length self#row
   >>
   in
@@ -396,12 +394,8 @@ let table_of_stream_body _loc l =
 let expand_tabular_sig _loc name l =
   <:sig_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
-type row = $lid:name$;
-class type table = object
-    $table_class_type_methods _loc l$
-end;
 module Row : sig
-  type t = row;
+  type t = $lid:name$;
   value labels : list string;
   value of_array : array string -> t;
   value to_list : t -> list string;
@@ -430,10 +424,12 @@ module Obj : sig
 end;
 
 module Table : sig
-  type t = table;
+  class type t = object
+      $table_class_type_methods _loc l "t"$
+  end;
   (* $table_make_sig_item _loc l$; *)
-  value of_stream : Stream.t row -> t;
-  value stream : t -> Stream.t row;
+  value of_stream : Stream.t Row.t -> t;
+  value stream : t -> Stream.t Row.t;
   value to_channel : 
     ?line_numbers:bool ->
     ?header:bool ->
@@ -464,28 +460,36 @@ end;
 let expand_tabular_str _loc name l =
   <:str_item<
 type $lid:name$ = { $row_record_fields _loc l$ };
-type row = $lid:name$;
-class type table = object
-    $table_class_type_methods _loc l$
-end;
-module T = struct
+module Base = struct
   module Row = struct
-    type t = row;
+    type t = $lid:name$;
     $labels_item _loc l$;
     value labels_array = Array.of_list labels;
     $row_of_array _loc l$;
     $list_of_row _loc l$;
   end;
 
+  class type table = object
+      $table_class_type_methods _loc l "table"$
+  end;
+
   module Table = struct
-    type t = table;
+    class type t = table;
     $table_make_str_item _loc l$;
     value stream t = t # stream;
     value of_stream xs = $table_of_stream_body _loc l$;
   end;
 end;
 
-include Tabular.Lib.Impl(T);
+module Impl = Tabular.Lib.Impl(Base);
+module Row = struct
+  include Base.Row;
+  include Impl.Row;
+end;
+module Table = struct
+  include Base.Table;
+  include Impl.Table;
+end;
 
 module Obj = struct
   class type t = object
