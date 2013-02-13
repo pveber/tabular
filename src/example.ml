@@ -1,12 +1,12 @@
-module String = struct
-  include String
+module Chr = struct
+  type t = string
   let of_string x = x
   let to_string x = x
 end
 
 module Bed : sig
   type tabular data = {
-    chr        : String ;
+    chr        : Chr ;
     st "chrom_start" : int ;
     ed "chrom_end"   : int ;
     strand     : [`Sense "+" | `Antisense "-"] ;

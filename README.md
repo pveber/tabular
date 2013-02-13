@@ -63,53 +63,52 @@ The `type tabular` declaration generates the following signature:
 module Bed :
   sig
     type tabular_t =
-      { chr : String.t; st : int; ed : int;
-        strand : [ | `Sense | `Antisense ]
+      { chr : Chr.t; st : int; ed : int; strand : [ | `Sense | `Antisense ]
       }
-   
+    
     type data = tabular_t
-   
+    
     module Row :
       sig
         type t = tabular_t
-       
+        
         val labels : string list
-         
+          
         val of_array : string array -> t
-         
+          
         val to_list : t -> string list
-         
+          
         val stream_of_channel :
           ?line_numbers: bool ->
             ?header: bool -> ?sep: char -> in_channel -> t Stream.t
-         
+          
         val stream_to_channel :
           ?line_numbers: bool ->
             ?header: bool -> ?sep: char -> out_channel -> t Stream.t -> unit
-         
+          
       end
-     
+      
     module Obj :
       sig
         class type t =
           object
-            method chr : String.t
+            method chr : Chr.t
             method st : int
             method ed : int
             method strand : [ | `Sense | `Antisense ]
           end
-         
+          
         val of_row : Row.t -> t
-         
+          
         val to_row : t -> Row.t
-         
+          
       end
-     
+      
     module Table :
       sig
         class type t =
           object
-            method chr : String.t array
+            method chr : Chr.t array
             method st : int array
             method ed : int array
             method strand : [ | `Sense | `Antisense ] array
@@ -119,31 +118,31 @@ module Bed :
             method labels : string list
             method stream : Row.t Stream.t
           end
-         
+          
         val of_stream : Row.t Stream.t -> t
-         
+          
         val stream : t -> Row.t Stream.t
-         
+          
         val to_channel :
           ?line_numbers: bool ->
             ?header: bool -> ?sep: char -> out_channel -> t -> unit
-         
+          
         val to_file :
           ?line_numbers: bool ->
             ?header: bool -> ?sep: char -> t -> string -> unit
-         
+          
         val latex_to_channel :
           ?line_numbers: bool -> out_channel -> t -> unit
-         
+          
         val of_channel :
           ?line_numbers: bool ->
             ?header: bool -> ?sep: char -> in_channel -> t
-         
+          
         val of_file :
           ?line_numbers: bool -> ?header: bool -> ?sep: char -> string -> t
-         
+          
       end
-     
+      
   end
 ```
 
