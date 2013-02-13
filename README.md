@@ -39,7 +39,7 @@ let () =
 ```
 
 The `type tabular` declaration generates the following signature:
-```
+```ocaml
 module Bed :
   sig
     type tabular_t =
