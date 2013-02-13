@@ -13,15 +13,31 @@ with data frames.
 
 Here is an example:
 ```ocaml
-type tabular bed = {
-  chr        : string ;
-  st "start" : int ;
-  ed "end"   : int ;
-  strand     : [`Sense "+" | `Antisense "-"] ;
-}
+module Chr = struct
+  type t = string
+  let of_string x = x
+  let to_string x = x
+end
+
+module Bed : sig
+  type tabular data = {
+    chr        : Chr ;
+    st "chrom_start" : int ;
+    ed "chrom_end"   : int ;
+    strand     : [`Sense "+" | `Antisense "-"] ;
+  }
+end =
+struct
+  type tabular data = {
+    chr        : String ;
+    st "chrom_start" : int ;
+    ed "chrom_end"   : int ;
+    strand     : [`Sense "+" | `Antisense "-"] ;
+  }
+end
 
 let bed = 
-  Bed.of_stream (
+  Bed.Table.of_stream (
     Stream.of_list [
       { Bed.chr = "chr1" ; st = 1 ; ed = 3 ; strand = `Sense } ;
       { Bed.chr = "chr1" ; st = 3 ; ed = 5 ; strand = `Sense } ;
@@ -31,11 +47,15 @@ let bed =
   )
 
 (* Filters the above [bed] value in order to keep intervals on the positive
-   strand and prints the result in tabular format *)
+   strand *)
+let filtered_table = Tabular.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
+
+(* and prints the result in tabular and LaTeX format *)
 let () = 
-  Bed.output 
-    stdout 
-    Tabular.(bed#sub (bed#strand = !!`Sense && bed#st > !!1))
+  Bed.Table.to_channel stdout filtered_table ;
+  print_newline () ;
+  Bed.Table.latex_to_channel stdout filtered_table ;
+  print_newline ()
 ```
 
 The `type tabular` declaration generates the following signature:
