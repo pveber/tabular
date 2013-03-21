@@ -14,7 +14,7 @@ module Bed : sig
 end =
 struct
   type tabular data = {
-    chr        : String ;
+    chr        : Chr ;
     st "chrom_start" : int ;
     ed "chrom_end"   : int ;
     strand     : [`Sense "+" | `Antisense "-"] ;
