@@ -45,6 +45,11 @@ module Option = struct
   let map o ~f = match o with
     | Some x -> Some (f x)
     | None -> None
+
+  let of_string f s =
+    if s = "" then None
+    else Some (f s)
+
 end
     
 module Array = struct
