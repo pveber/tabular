@@ -14,6 +14,7 @@ module Option : sig
   val value : 'a t -> default:'a -> 'a
   val map : 'a t -> f:('a -> 'b) -> 'b t
   val of_string : (string -> 'a) -> string -> 'a t
+  val to_string : ('a -> string) -> 'a t -> string
 end
 
 module String : sig

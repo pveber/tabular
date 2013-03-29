@@ -179,7 +179,7 @@ let convert_col_type _loc (typ, opt) =
       let (t, of_s, to_s, s, cmp) = conv in
       (<:ctyp< option $t$ >>,
 	 <:expr< Tabular.Lib.Option.of_string $of_s$ >>,
-	 <:expr< Tabular.Lib.Option.to_string ~f:$to_s$ >>,
+	 <:expr< Tabular.Lib.Option.to_string $to_s$ >>,
 	 add_suffix s,
 	 compare_opt cmp)
 
