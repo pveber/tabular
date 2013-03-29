@@ -50,6 +50,10 @@ module Option = struct
     if s = "" then None
     else Some (f s)
 
+  let to_string f = function
+  | None -> ""
+  | Some x -> f x
+
 end
     
 module Array = struct
