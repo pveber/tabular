@@ -160,6 +160,10 @@ module Stream = struct
       from aux
     )
 
+
+  let skip_one xs =
+    junk xs ;
+    from (fun _ -> next xs)
 end
 
 let row_conversion_fail expected got =
@@ -169,6 +173,7 @@ let row_conversion_fail expected got =
 
 let input ~header ~row_of_array ~of_stream ic =
   Stream.lines_of ic
+  |! Stream.skip_one
   |! Stream.map ~f:(String.split ~sep:'\t')
   |! Stream.map ~f:row_of_array
   |! of_stream
