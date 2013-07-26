@@ -1,4 +1,4 @@
-module type Gen = sig
+module type T = sig
   module Row : sig
     type t
     val labels : string list
@@ -12,20 +12,20 @@ module type Gen = sig
   end
 end
 
-module type Impl = functor (G : Gen) ->
+module type Impl = functor (X : T) ->
 sig 
   module Row : sig
     val stream_of_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      in_channel -> G.Row.t Stream.t
+      in_channel -> X.Row.t Stream.t
     val stream_to_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       out_channel -> 
-      G.Row.t Stream.t ->     
+      X.Row.t Stream.t ->     
       unit
   end
   module Table : sig
@@ -33,25 +33,25 @@ sig
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      out_channel -> G.Table.t -> unit
+      out_channel -> X.Table.t -> unit
     val to_file : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      G.Table.t -> string -> unit
+      X.Table.t -> string -> unit
     val latex_to_channel : 
       ?line_numbers:bool ->
-      out_channel -> G.Table.t -> unit
+      out_channel -> X.Table.t -> unit
     val of_channel : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      in_channel -> G.Table.t
+      in_channel -> X.Table.t
     val of_file : 
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      string -> G.Table.t
+      string -> X.Table.t
   end
 end
 

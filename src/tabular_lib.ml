@@ -234,9 +234,9 @@ let latex_output ~header ~list_of_row oc xs =
 
 open Tabular_sig
 
-module Impl(G : Gen) = struct
+module Impl(X : T) = struct
   module Row = struct
-    include G.Row
+    include X.Row
     let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic =
       input ~header ~row_of_array:of_array ~of_stream:(fun x -> x) ic
 
@@ -245,7 +245,7 @@ module Impl(G : Gen) = struct
   end
 
   module Table = struct
-    include G.Table
+    include X.Table
     let string_of_row r = String.concat "\t" (Row.to_list r)
 
     let to_channel

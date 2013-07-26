@@ -391,6 +391,13 @@ let table_of_stream_body _loc l =
     $fun_call$
   >>
 
+
+(*
+ *************************************
+ * SIGNATURE DEFINITION AND CONSTRUCTION *
+ *************************************
+ *)
+
 let expand_tabular_sig _loc name l =
   <:sig_item<
 type tabular_t = { $row_record_fields _loc l$ };
@@ -462,7 +469,7 @@ let expand_tabular_str _loc name l =
   <:str_item<
 type tabular_t = { $row_record_fields _loc l$ };
 type $lid:name$ = tabular_t;
-module Base = struct
+module Base____ = struct
   module Row = struct
     type t = tabular_t;
     $labels_item _loc l$;
@@ -483,14 +490,14 @@ module Base = struct
   end;
 end;
 
-module Impl = Tabular.Lib.Impl(Base);
+module Impl____ = Tabular.Lib.Impl(Base____);
 module Row = struct
-  include Base.Row;
-  include Impl.Row;
+  include Base____.Row;
+  include Impl____.Row;
 end;
 module Table = struct
-  include Base.Table;
-  include Impl.Table;
+  include Base____.Table;
+  include Impl____.Table;
 end;
 
 module Obj = struct
