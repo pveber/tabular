@@ -393,15 +393,23 @@ let table_of_stream_body _loc l =
 
 
 (*
- *************************************
- * SIGNATURE DEFINITION AND CONSTRUCTION *
- *************************************
+ *************************
+ * SIGNATURE DEFINITION  *
+ *************************
  *)
+let format_type _loc l =
+  List.fold_right
+    (fun (_loc, _, name, _, typ) accu -> 
+      let field = <:ctyp< [= `$lid:name$ of $typ#t$ ] >> in
+      <:ctyp< ($field$ * $accu$) >>)
+    l <:ctyp<'$"a"$>>  
+
 
 let expand_tabular_sig _loc name l =
   <:sig_item<
 type tabular_t = { $row_record_fields _loc l$ };
 type $lid:name$ = tabular_t;
+type format 'a = $format_type _loc l$;
 module Row : sig
   type t = tabular_t;
   value labels : list string;
@@ -469,6 +477,7 @@ let expand_tabular_str _loc name l =
   <:str_item<
 type tabular_t = { $row_record_fields _loc l$ };
 type $lid:name$ = tabular_t;
+type format 'a = $format_type _loc l$;
 module Base____ = struct
   module Row = struct
     type t = tabular_t;
