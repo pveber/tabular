@@ -409,9 +409,9 @@ let expand_tabular_sig _loc name l =
   <:sig_item<
 type tabular_t = { $row_record_fields _loc l$ };
 type $lid:name$ = tabular_t;
-type ty 'a = $format_type _loc l$;
 module Row : sig
   type t = tabular_t;
+  type ty 'a = $format_type _loc l$;
   value labels : list string;
   value of_array : array string -> t;
   value to_list : t -> list string;
@@ -477,10 +477,10 @@ let expand_tabular_str _loc name l =
   <:str_item<
 type tabular_t = { $row_record_fields _loc l$ };
 type $lid:name$ = tabular_t;
-type ty 'a = $format_type _loc l$;
 module Base____ = struct
   module Row = struct
     type t = tabular_t;
+    type ty 'a = $format_type _loc l$;
     $labels_item _loc l$;
     value labels_array = Array.of_list labels;
     $row_of_array _loc l$;
