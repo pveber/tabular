@@ -433,9 +433,10 @@ module Obj : sig
   class type t = object
       $obj_class_type_methods _loc l$;
   end;
+  type row = Row.t;
   $obj_make_sig_item _loc l$;
-  value of_row : Row.t -> t;
-  value to_row : t -> Row.t;
+  value of_row : row -> t;
+  value to_row : t -> row;
   (* value of_array : array string -> t; *)
 end;
 
@@ -513,6 +514,7 @@ module Obj = struct
   class type t = object
       $obj_class_type_methods _loc l$;
   end;
+  type row = Row.t;
   $obj_of_row _loc l$;
   $obj_to_row _loc l$;
 end;
