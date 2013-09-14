@@ -13,44 +13,46 @@ module type T = sig
 end
 
 module type Impl = functor (X : T) ->
-sig 
+sig
   module Row : sig
-    val stream_of_channel : 
+    val stream_of_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       in_channel -> X.Row.t Stream.t
-    val stream_to_channel : 
+    val stream_to_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      out_channel -> 
-      X.Row.t Stream.t ->     
+      out_channel ->
+      X.Row.t Stream.t ->
       unit
   end
   module Table : sig
-    val to_channel : 
+    val to_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       out_channel -> X.Table.t -> unit
-    val to_file : 
+    val to_file :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       X.Table.t -> string -> unit
-    val latex_to_channel : 
+    val latex_to_channel :
       ?line_numbers:bool ->
       out_channel -> X.Table.t -> unit
-    val of_channel : 
+    val of_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
+      ?comment_char:char ->
       in_channel -> X.Table.t
-    val of_file : 
+    val of_file :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
+      ?comment_char:char ->
       string -> X.Table.t
   end
 end

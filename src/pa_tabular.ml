@@ -16,17 +16,17 @@ let check_unique f l =
       else Hashtbl.add tbl id ())
     l
 
-let mod_ctyp (_loc, l) = 
-  List.fold_left 
+let mod_ctyp (_loc, l) =
+  List.fold_left
     (fun m id ->
       <:ctyp< $id: Ast.ident_of_ctyp m$ . $uid:id$ >>)
-    <:ctyp< $uid:List.hd l$ >> 
+    <:ctyp< $uid:List.hd l$ >>
     (List.tl l)
 
-let mod_expr (_loc, l) = 
-  List.fold_left 
+let mod_expr (_loc, l) =
+  List.fold_left
     (fun m id -> <:expr< $m$ . $uid:id$ >>)
-    <:expr< $uid:List.hd l$ >> 
+    <:expr< $uid:List.hd l$ >>
     (List.tl l)
 
 let mod_name (_loc, l) =
@@ -37,57 +37,57 @@ let mod_name (_loc, l) =
 (*
  ********************************
  * CODE GENERATION FOR VARIANTS *
- ******************************** 
+ ********************************
 *)
 let poly_type _loc poly l =
   if poly then
     let cases =
       List.fold_right
 	(fun (id, label) accu ->
-	  <:ctyp< `$id$ | $accu$ >>) 
-	l <:ctyp< >> 
+	  <:ctyp< `$id$ | $accu$ >>)
+	l <:ctyp< >>
     in
     <:ctyp< [ = $cases$ ] >>
   else
     let cases =
       List.fold_right
 	(fun (id, label) accu ->
-	  <:ctyp< $uid:id$ | $accu$ >>) 
-	l <:ctyp< >> 
+	  <:ctyp< $uid:id$ | $accu$ >>)
+	l <:ctyp< >>
     in
     <:ctyp< [ $cases$ ] >>
 
 let poly_of_string _loc poly l =
   let cases =
     List.fold_right
-      (fun (id, label) accu -> 
+      (fun (id, label) accu ->
 	let e =
 	  if poly then <:expr< ` $id$ >>
 	  else <:expr< $uid:id$ >> in
 	<:match_case< $str: String.escaped label$ -> $e$ | $accu$ >>)
-      l <:match_case< _ -> failwith "Bad format while reading variant" >> 
+      l <:match_case< _ -> failwith "Bad format while reading variant" >>
   in
   <:expr< fun [ $cases$ ] >>
 
 let poly_to_string _loc poly l =
   let cases =
     List.fold_right
-      (fun (id, label) accu -> 
+      (fun (id, label) accu ->
 	 let p =
-	   if poly then <:patt< ` $id$ >> 
+	   if poly then <:patt< ` $id$ >>
 	   else <:patt< $uid:id$ >> in
 	 <:match_case< $p$ -> $str: String.escaped label$ | $accu$ >>)
-      l <:match_case< >> 
+      l <:match_case< >>
   in
   <:expr< fun [ $cases$ ] >>
 
 let poly_to_int _loc poly l =
   let n, cases =
-    List.fold_left 
-      (fun (n, cases) (id, label) -> 
-	 let p = 
-	   if poly then <:patt< ` $id$ >> 
-	   else <:patt< $uid:id$ >> in 
+    List.fold_left
+      (fun (n, cases) (id, label) ->
+	 let p =
+	   if poly then <:patt< ` $id$ >>
+	   else <:patt< $uid:id$ >> in
 	 (n + 1,
 	  <:match_case< $cases$ | $p$ -> $int: string_of_int n$ >>))
       (0, <:match_case< >>) l in
@@ -95,8 +95,8 @@ let poly_to_int _loc poly l =
 
 let poly_of_int _loc poly l e =
   let n, cases =
-    List.fold_left 
-      (fun (n, l) (id, cases) -> 
+    List.fold_left
+      (fun (n, l) (id, cases) ->
 	 let e =
 	   if poly then <:expr< ` $id$ >>
 	   else <:expr< $uid:id$ >> in
@@ -112,7 +112,7 @@ let rec string_of_ident = function
   | <:ident< $lid:s$ >> -> s
   | <:ident< $uid:s$ >> -> s
   | _ -> failwith "string_of_ident"
- 
+
 (* provides a code generation-friendly representation of the type of a column *)
 let convert_col_type _loc (typ, opt) =
   let conv = match typ with
@@ -166,11 +166,11 @@ let convert_col_type _loc (typ, opt) =
 
   let add_suffix = function
       None -> None
-    | Some s -> Some (s ^ "_option") 
+    | Some s -> Some (s ^ "_option")
   in
 
   let compare_opt cmp =
-    <:expr< Tabular.Lib.compare_opt $cmp$ >> 
+    <:expr< Tabular.Lib.compare_opt $cmp$ >>
   in
 
   let t, of_s, to_s, s, cmp =
@@ -207,33 +207,33 @@ let add_index l =
 
 let row_record_fields _loc l =
   List.fold_right
-    (fun (_loc, _, name, _, typ) accu -> 
+    (fun (_loc, _, name, _, typ) accu ->
       let field = <:ctyp< $lid:name$ : $typ#t$ >> in
       <:ctyp< $field$ ; $accu$ >>)
-    l <:ctyp<>>  
+    l <:ctyp<>>
 
 let row_of_array _loc l =
-  let fields = 
+  let fields =
     List.fold_right
-      (fun (_loc, index, name, _, typ) accu -> 
+      (fun (_loc, index, name, _, typ) accu ->
 	<:rec_binding< $lid:name$ = $typ#of_string$ a.($`int:index$) ; $accu$ >>)
       l <:rec_binding<>>
   in
   <:str_item<value of_array a = if Array.(length a >= length labels_array) then { $fields$ } else Tabular.Lib.row_conversion_fail labels (Array.to_list a);>>
 
 let array_of_row _loc l =
-  let elts = 
+  let elts =
     List.fold_right
-      (fun (_loc, index, name, _, typ) accu -> 
+      (fun (_loc, index, name, _, typ) accu ->
 	<:expr< $typ#to_string$ row.$lid:name$ ; $accu$ >>)
       l <:expr<>>
   in
   <:str_item<value array_of_row row = [| $elts$ |];>>
-    
+
 let list_of_row _loc l =
-  let elts = 
+  let elts =
     List.fold_right
-      (fun (_loc, index, name, _, typ) accu -> 
+      (fun (_loc, index, name, _, typ) accu ->
 	<:expr< [ ($typ#to_string$ row.$lid:name$) :: $accu$ ] >>)
       l <:expr< [] >>
   in
@@ -278,7 +278,7 @@ let obj_to_row _loc l =
  *)
 
 let table_class_type_methods _loc l typename =
-  let init = <:class_sig_item< 
+  let init = <:class_sig_item<
     method row : int -> Row.t;
     method sub : array bool -> $lid:typename$;
     method length : int;
@@ -292,14 +292,14 @@ let table_class_type_methods _loc l typename =
     l init
 
 let labels_item _loc l =
-  let labels = 
+  let labels =
     List.fold_right
-      (fun (_loc, _, _, label, _) accu -> 
+      (fun (_loc, _, _, label, _) accu ->
 	<:expr< [ $str:label$ :: $accu$ ] >>)
       l <:expr< [] >>
   in
   <:str_item<value labels = $labels$;>>
-    
+
 let table_object_row_method _loc l =
   let body =
     List.fold_right
@@ -351,7 +351,7 @@ method stream = Tabular.Lib.Stream.init self#length self#row
 
 let table_make_str_item _loc l =
   let def = match l with
-    | [] -> 
+    | [] ->
       <:expr<
         object (s)
 	  method row i = raise (Invalid_argument "table#row: empty table");
@@ -369,8 +369,8 @@ let table_make_str_item _loc l =
 	    >>)
 	  t e
       in
-      let init = 
-	arg_check <:expr<object (self) $table_object_methods _loc l$ end>> 
+      let init =
+	arg_check <:expr<object (self) $table_object_methods _loc l$ end>>
       in
       List.fold_right
 	(fun (_loc, _, name, _, _) accu ->
@@ -399,10 +399,10 @@ let table_of_stream_body _loc l =
  *)
 let format_type _loc l =
   List.fold_right
-    (fun (_loc, _, name, _, typ) accu -> 
+    (fun (_loc, _, name, _, typ) accu ->
       let field = <:ctyp< [= `$lid:name$ of $typ#t$ ] >> in
       <:ctyp< ($field$ * $accu$) >>)
-    l <:ctyp<'$"a"$>>  
+    l <:ctyp<'$"a"$>>
 
 
 let expand_tabular_sig _loc name l =
@@ -415,16 +415,16 @@ module Row : sig
   value labels : list string;
   value of_array : array string -> t;
   value to_list : t -> list string;
-  value stream_of_channel : 
+  value stream_of_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
       in_channel -> Stream.t t;
-  value stream_to_channel : 
+  value stream_to_channel :
       ?line_numbers:bool ->
       ?header:bool ->
       ?sep:char ->
-      out_channel -> 
+      out_channel ->
       Stream.t t ->
       unit;
 end;
@@ -447,28 +447,30 @@ module Table : sig
   (* $table_make_sig_item _loc l$; *)
   value of_stream : Stream.t Row.t -> t;
   value stream : t -> Stream.t Row.t;
-  value to_channel : 
+  value to_channel :
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
     out_channel -> t -> unit;
-  value to_file : 
+  value to_file :
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
     t -> string -> unit;
-  value latex_to_channel : 
+  value latex_to_channel :
     ?line_numbers:bool ->
     out_channel -> t -> unit;
-  value of_channel : 
+  value of_channel :
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
+    ?comment_char:char ->
     in_channel -> t;
-  value of_file : 
+  value of_file :
     ?line_numbers:bool ->
     ?header:bool ->
     ?sep:char ->
+    ?comment_char:char ->
     string -> t;
 end;
 
@@ -525,12 +527,12 @@ EXTEND Gram
   GLOBAL: sig_item str_item;
 
   sig_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
+    [ "type" ; LIDENT "tabular"; name = LIDENT ; "=";
       "{"; l = col_list; "}" -> expand_tabular_sig _loc name (add_index l)]
   ];
 
   str_item: LEVEL "top" [
-    [ "type" ; LIDENT "tabular"; name = LIDENT ; "="; 
+    [ "type" ; LIDENT "tabular"; name = LIDENT ; "=";
       "{"; l = col_list; "}" -> expand_tabular_str _loc name (add_index l)]
   ];
 
@@ -572,21 +574,21 @@ EXTEND Gram
 
 
   col: [
-    [ name = LIDENT; 
+    [ name = LIDENT;
       label = OPT [ s = STRING -> eval_string s ];
-      typopt = 
-	OPT [ ":"; 
+      typopt =
+	OPT [ ":";
 	      typ = [ LIDENT "string" -> `String
 		    | LIDENT "bool" -> `Bool
 		    | l = poly_var -> `Poly_var l
 		    | LIDENT "int" -> `Int
 		    | LIDENT "float" -> `Float
-		    | m = LIST1 [ x = UIDENT -> x ] SEP "." -> 
+		    | m = LIST1 [ x = UIDENT -> x ] SEP "." ->
 			`Module (_loc, m) ];
 	      o = OPT [ LIDENT "option" ]
-		  -> (typ, o <> None) ] -> 
+		  -> (typ, o <> None) ] ->
 	let typ =
-	  match typopt with 
+	  match typopt with
 	      None -> (`String, false )
 	    | Some x -> x in
 	(_loc,

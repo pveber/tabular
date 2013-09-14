@@ -55,7 +55,7 @@ module Option = struct
   | Some x -> f x
 
 end
-    
+
 module Array = struct
   include Array
 
@@ -86,12 +86,12 @@ module Array = struct
 	end;
       done;
       result
-	
+
   let sub xs ~index =
     filter_opt (mapi (fun i x -> if index.(i) then Some x else None) xs)
 end
 
-module String = 
+module String =
 struct
   include String
 
@@ -100,18 +100,18 @@ struct
       for i = 0 to String.length s - 1 do
 	if s.[i] = ch then incr accu
       done ;
-      !accu 
-  
-  let split ~sep x = 
-    let n = String.length x in 
-    let m = count_occurences sep x + 1 in 
+      !accu
+
+  let split ~sep x =
+    let n = String.length x in
+    let m = count_occurences sep x + 1 in
     let res = Array.make m "" in
     let rec search k i j =
       if j >= n then res.(k) <- String.sub x i (j - i)
       else (
 	if x.[j] = sep then (
 	  res.(k) <- String.sub x i (j - i) ;
-	  search (k + 1) (j + 1) (j + 1) 
+	  search (k + 1) (j + 1) (j + 1)
 	)
 	else search k i (j + 1)
       )
@@ -144,8 +144,22 @@ module Stream = struct
   let to_array t = Array.of_list (to_list t)
 
   let map xs ~f =
-    let aux _ = Option.map (next xs) ~f in 
+    let aux _ = Option.map (next xs) ~f in
     from aux
+
+  let filter_map xs ~f =
+    let rec aux i =
+      match next xs with
+      | Some x -> (
+	match f x with
+	| None -> aux i
+	| x -> x
+      )
+      | None -> None
+    in
+    from aux
+
+
 
   let lines_of ic =
     from (fun _ -> try Some (input_line ic) with End_of_file -> None)
@@ -153,7 +167,7 @@ module Stream = struct
   let init n ~f =
     if n < 0 then empty ()
     else (
-      let aux i = 
+      let aux i =
         if i < n then Some (f i)
         else None
       in
@@ -171,10 +185,15 @@ let row_conversion_fail expected got =
   let msg = Printf.sprintf "Couln't parse a row. Expected:\n%s\nbut got:\n%s\n" (to_string expected) (to_string got) in
   failwith msg
 
-let input ~header ~row_of_array ~of_stream ic =
+let input ~header ~comment_char ~row_of_array ~of_stream ic =
   Stream.lines_of ic
-  |! Stream.skip_one
-  |! Stream.map ~f:(String.split ~sep:'\t')
+  |! (if header then Stream.skip_one else id)
+  |! Stream.filter_map ~f:(
+    fun x ->
+      if x = "" || x.[0] = comment_char
+      then None
+      else Some (String.split ~sep:'\t' x)
+  )
   |! Stream.map ~f:row_of_array
   |! of_stream
 
@@ -188,11 +207,11 @@ let output ?header ~list_of_row oc rows =
   begin
     match header with
     | None -> ()
-    | Some labels -> 
+    | Some labels ->
         output_list "\t" oc labels ;
         output_char oc '\n'
   end ;
-  Stream.iter 
+  Stream.iter
     (fun r ->
       output_list "\t" oc (list_of_row r) ;
       output_char oc '\n')
@@ -200,7 +219,7 @@ let output ?header ~list_of_row oc rows =
 
 let replace ~char ~by x =
   let rec aux i =
-    try 
+    try
       let j = String.index_from x i char in
       (String.sub x i (j - i)) ^ by ^ (aux (j + 1))
     with Not_found -> String.(
@@ -209,19 +228,19 @@ let replace ~char ~by x =
     )
   in
   aux 0
-  
+
 let latex_escape = replace ~char:'_' ~by:"\\_"
 
 let latex_output ~header ~list_of_row oc xs =
   fprintf oc
-    "\\begin{tabular}{%s}\n" 
+    "\\begin{tabular}{%s}\n"
     (List.map (fun _ -> "c") header |! String.concat "") ;
 
-  output_list 
-    " & " oc 
+  output_list
+    " & " oc
     (List.map (fun l -> sprintf "{ \\bf %s }" (latex_escape l)) header) ;
   output_string oc "\\\\\n\\hline\n" ;
-  
+
   Stream.iter
     (fun r ->
       list_of_row r
@@ -238,7 +257,7 @@ module Impl(X : T) = struct
   module Row = struct
     include X.Row
     let stream_of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic =
-      input ~header ~row_of_array:of_array ~of_stream:(fun x -> x) ic
+      input ~header ~comment_char:'\000' ~row_of_array:of_array ~of_stream:(fun x -> x) ic
 
     let stream_to_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') oc rows =
       output ?header:(if header then Some labels else None) ~list_of_row:to_list oc rows
@@ -263,10 +282,10 @@ module Impl(X : T) = struct
     let latex_to_channel ?(line_numbers = false) oc table =
       latex_output ~header:Row.labels ~list_of_row:Row.to_list oc (stream table)
 
-    let of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ic =
-      input ~header ~row_of_array:Row.of_array ~of_stream:of_stream ic
+    let of_channel ?(line_numbers = false) ?(header = false) ?(sep = '\t') ?(comment_char = '\000') ic =
+      input ~header ~comment_char ~row_of_array:Row.of_array ~of_stream:of_stream ic
 
-    let of_file ?line_numbers ?header ?sep path =
+    let of_file ?line_numbers ?header ?sep ?comment_char path =
       let ic = open_in path in
       let r = of_channel ?line_numbers ?header ?sep ic in
       close_in ic ; r
