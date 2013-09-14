@@ -187,13 +187,13 @@ let row_conversion_fail expected got =
 
 let input ~header ~comment_char ~row_of_array ~of_stream ic =
   Stream.lines_of ic
-  |! (if header then Stream.skip_one else id)
   |! Stream.filter_map ~f:(
     fun x ->
       if x = "" || x.[0] = comment_char
       then None
       else Some (String.split ~sep:'\t' x)
   )
+  |! (if header then Stream.skip_one else id)
   |! Stream.map ~f:row_of_array
   |! of_stream
 
