@@ -1,0 +1,18 @@
+opam-version: "1.2"
+name: "tabular"
+version: "0.0"
+maintainer: "Philippe Veber <philippe.veber@gmail.com>"
+authors: "Philippe Veber <philippe.veber@gmail.com>"
+homepage: "https://github.com/pveber/tabular"
+bug-reports: "https://github.com/pveber/tabular/issues"
+license: "GPL3"
+dev-repo: "https://github.com/pveber/tabular.git"
+build: [
+  [make]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "tabular"]
+depends: [
+  "oasis"     {build}
+  "ocamlfind" {build}
+]
