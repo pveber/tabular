@@ -11,7 +11,7 @@ Library tabular
   BuildTools: 		ocamlbuild
   Modules:    		Tabular, Tabular_lib, Tabular_sig
   FindlibName:        	tabular
-  
+
 Library tabular_syntax
   Path:			src
   BuildTools: 		ocamlbuild
