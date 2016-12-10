@@ -13,6 +13,7 @@ build: [
 install: [make "install"]
 remove: ["ocamlfind" "remove" "tabular"]
 depends: [
+  "camlp4"    {build}
   "oasis"     {build}
   "ocamlfind" {build}
 ]
