@@ -11,17 +11,9 @@ type table_signature = {
 
 module Struct = struct
   let row_module ~loc tsig =
-    let td =
-      type_declaration ~loc
-        ~name:(Located.mk ~loc "t")
-        ~params:[]
-        ~cstrs:[]
-        ~kind:Ptype_abstract
-        ~private_:Public
-        ~manifest:(Some (ptyp_constr ~loc (Located.mk ~loc (Longident.(parse tsig.name))) []))
-    in
-    let contents = [
-      pstr_type ~loc Nonrecursive [ td ] ;
+    let contents = [%str
+      type nonrec t = t
+      let fields = [%e elist ~loc (List.map tsig.fields ~f:(fun ld -> estring ~loc ld.pld_name.txt))]
     ] in
     module_binding ~loc
       ~name:(Located.mk ~loc "Row")
@@ -34,18 +26,9 @@ end
 
 module Sig = struct
   let row_module ~loc tsig  =
-    let td =
-      type_declaration ~loc
-        ~name:(Located.mk ~loc "t")
-        ~params:[]
-        ~cstrs:[]
-        ~kind:Ptype_abstract
-        ~private_:Public
-        ~manifest:(Some (ptyp_constr ~loc (Located.mk ~loc (Longident.(parse tsig.name))) []))
+    let contents =
+      [%sig: type nonrec t = t val fields : string list]
     in
-    let contents = [
-      psig_type ~loc Nonrecursive [ td ] ;
-    ] in
     module_declaration ~loc
       ~name:(Located.mk ~loc "Row")
       ~type_:(pmty_signature ~loc contents)
