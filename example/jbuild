@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name ppx_tabular_test)
+  (preprocess (pps (ppx_tabular)))))
+
+
