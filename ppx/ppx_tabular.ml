@@ -4,16 +4,26 @@ open Ast_builder.Default
 
 let extension_name = "tabular"
 
+type field_type =
+  | Int
+  | Float
+  | String
+
+type field = {
+  field_name : string ;
+  field_typ : field_type ;
+}
+
 type table_signature = {
   name : string ;
-  fields : label_declaration list ;
+  fields : field list ;
 }
 
 module Struct = struct
   let row_module ~loc tsig =
     let contents = [%str
       type nonrec t = t
-      let fields = [%e elist ~loc (List.map tsig.fields ~f:(fun ld -> estring ~loc ld.pld_name.txt))]
+      let fields = [%e elist ~loc (List.map tsig.fields ~f:(fun fld -> estring ~loc fld.field_name))]
     ] in
     module_binding ~loc
       ~name:(Located.mk ~loc "Row")
@@ -25,7 +35,7 @@ module Struct = struct
 end
 
 module Sig = struct
-  let row_module ~loc tsig  =
+  let row_module ~loc _tsig  =
     let contents =
       [%sig: type nonrec t = t val fields : string list]
     in
@@ -38,6 +48,20 @@ module Sig = struct
   ]
 end
 
+let field_typ_of_core_type = function
+  | Ptyp_constr ({ txt = Lident constr ; _ }, _) -> (
+      match constr with
+      | "int" -> Int
+      | "float" -> Float
+      | "string" -> String
+      | _ -> failwith "unsupported field type"
+    )
+  | _ -> failwith "unsupported field type"
+
+let field_of_label_declaration (ld : label_declaration) =
+  { field_name = ld.pld_name.txt ;
+    field_typ = Int }
+
 let with_record_type gen ~loc ~path:_ (_, tds) =
   match tds with
   | [ td ] -> (
@@ -45,7 +69,7 @@ let with_record_type gen ~loc ~path:_ (_, tds) =
       | Ptype_record ld ->
         let tsig = {
           name = td.ptype_name.txt ;
-          fields = ld ;
+          fields = List.map ~f:field_of_label_declaration ld ;
         }
         in
         gen ~loc tsig
