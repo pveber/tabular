@@ -1,10 +1,2 @@
-*.annot
-*.cmo
-*.cma
-*.cmi
-*.a
-*.o
-*.cmx
-*.cmxs
-*.cmxa
-setup.data
+_build
+**/.merlin
