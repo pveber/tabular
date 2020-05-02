@@ -1,5 +1,0 @@
-# OASIS_START
-# OASIS_STOP
-<src/pa_tabular.ml>: syntax_camlp4o
-true: debug, annot
-<src/example.*>: syntax_camlp4o, pa_tabular
